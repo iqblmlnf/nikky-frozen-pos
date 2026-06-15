@@ -1,0 +1,189 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+
+import ProductToolbar from "../../components/products/ProductToolbar";
+import ProductTable from "../../components/products/ProductTable";
+import ProductModal from "../../components/products/ProductModal";
+import Swal from "sweetalert2";
+
+import type { Product } from "../../types/product";
+
+export function ProductPage() {
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("Semua");
+  const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const loadProducts = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+      const params = user.role === "owner" ? {} : { branch_id: user.branch_id };
+
+      const res = await axios.get("http://localhost:8000/api/products", {
+        params,
+      });
+
+      setProducts(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const handleDelete = async (product: Product) => {
+    const result = await Swal.fire({
+      title: "Hapus Produk?",
+      text: `Produk ${product.name} akan dihapus`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Hapus",
+      cancelButtonText: "Batal",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+      await axios.delete(`http://localhost:8000/api/products/${product.id}`, {
+        data: {
+          user_id: user.id,
+        },
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil",
+        text: "Produk berhasil dihapus",
+      });
+
+      loadProducts();
+    } catch (error) {
+      console.error(error);
+
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: "Produk gagal dihapus",
+      });
+    }
+  };
+
+  const categories = [
+    "Semua",
+    ...Array.from(new Set(products.map((p) => p.category))),
+  ];
+
+  const filtered = products.filter(
+    (p) =>
+      (category === "Semua" || p.category === category) &&
+      (p.name.toLowerCase().includes(search.toLowerCase()) ||
+        p.sku.toLowerCase().includes(search.toLowerCase())),
+  );
+
+  return (
+    <div className="p-4 lg:p-6 space-y-5">
+      {/* HEADER */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Manajemen Produk</h1>
+
+        <p className="text-gray-500 mt-1">
+          Kelola produk, stok, kategori, dan distribusi antar cabang
+        </p>
+      </div>
+
+      {/* STATS */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5">
+          <p className="text-sm text-gray-500">Total Produk</p>
+
+          <h2 className="text-3xl font-bold text-blue-600 mt-2">
+            {products.length}
+          </h2>
+        </div>
+
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5">
+          <p className="text-sm text-gray-500">Total Stok</p>
+
+          <h2 className="text-3xl font-bold text-green-600 mt-2">
+            {products.reduce(
+              (sum, product) =>
+                sum +
+                (product.stocks?.reduce(
+                  (s: number, stock: any) => s + Number(stock.stock),
+                  0,
+                ) || 0),
+              0,
+            )}
+          </h2>
+        </div>
+
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5">
+          <p className="text-sm text-gray-500">Stok Menipis</p>
+
+          <h2 className="text-3xl font-bold text-red-600 mt-2">
+            {
+              products.filter((product) => {
+                const total =
+                  product.stocks?.reduce(
+                    (s: number, stock: any) => s + Number(stock.stock),
+                    0,
+                  ) || 0;
+
+                return total <= 10;
+              }).length
+            }
+          </h2>
+        </div>
+
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5">
+          <p className="text-sm text-gray-500">Kategori</p>
+
+          <h2 className="text-3xl font-bold text-purple-600 mt-2">
+            {categories.length - 1}
+          </h2>
+        </div>
+      </div>
+
+      {/* TOOLBAR */}
+      <ProductToolbar
+        search={search}
+        setSearch={setSearch}
+        category={category}
+        setCategory={setCategory}
+        categories={categories}
+        onAdd={() => {
+          setEditing(null);
+          setShowModal(true);
+        }}
+      />
+
+      {/* TABLE */}
+      <ProductTable
+        products={filtered}
+        onEdit={(product) => {
+          setEditing(product);
+          setShowModal(true);
+        }}
+        onDelete={handleDelete}
+      />
+
+      {/* MODAL */}
+      <ProductModal
+        open={showModal}
+        editing={editing}
+        onClose={() => {
+          setShowModal(false);
+        }}
+        onSuccess={() => {
+          loadProducts();
+          setShowModal(false);
+        }}
+      />
+    </div>
+  );
+}

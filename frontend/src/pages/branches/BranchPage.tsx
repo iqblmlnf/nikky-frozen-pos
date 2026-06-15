@@ -1,0 +1,92 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+import Swal from "sweetalert2";
+
+import BranchTable from "../../components/branches/BranchTable";
+import BranchModal from "../../components/branches/BranchModal";
+
+export default function BranchPage() {
+  const [branches, setBranches] = useState<any[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
+
+  const loadBranches = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/api/branches");
+
+      setBranches(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    loadBranches();
+  }, []);
+
+  const handleDelete = async (branch: any) => {
+    const result = await Swal.fire({
+      title: "Hapus Cabang?",
+      text: `${branch.name} akan dihapus`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Hapus",
+      cancelButtonText: "Batal",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await axios.delete(`http://localhost:8000/api/branches/${branch.id}`);
+
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil",
+        text: "Cabang berhasil dihapus",
+      });
+
+      loadBranches();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return (
+    <div className="p-4 lg:p-6 space-y-5">
+      <div className="flex justify-end">
+        <button
+          onClick={() => {
+            setEditing(null);
+            setShowModal(true);
+          }}
+          className="px-4 py-3 rounded-xl bg-blue-600 text-white font-semibold"
+        >
+          + Tambah Cabang
+        </button>
+      </div>
+
+      <BranchTable
+        branches={branches}
+        onEdit={(branch) => {
+          setEditing(branch);
+          setShowModal(true);
+        }}
+        onDelete={handleDelete}
+      />
+
+      <BranchModal
+        open={showModal}
+        editing={editing}
+        onClose={() => {
+          setShowModal(false);
+          setEditing(null);
+        }}
+        onSuccess={() => {
+          loadBranches();
+          setShowModal(false);
+          setEditing(null);
+        }}
+      />
+    </div>
+  );
+}
