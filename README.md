@@ -147,11 +147,21 @@ http://localhost:5173
 nikky_frozen_pos
 ```
 
-2. Import file database yang tersedia pada link berikut:
+2. Import file database dan copy folder products ke backend yang tersedia pada link berikut:
 
 📁 Database Download:
 
 https://drive.google.com/drive/folders/1I8uDXJpVJyO8V327RIEC0Zvpt7Y5TlHO?usp=sharing
+
+📁 Download folder products:
+
+https://drive.google.com/drive/folders/1G4I_EWabs2AvgKsjUqs9eNochHbRq0lc?usp=sharing
+
+```text
+Salin folder tersebut ke:
+
+backend/storage/app/public/products
+```
 
 3. Setelah import selesai, jalankan backend dan frontend.
 
