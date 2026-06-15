@@ -157,10 +157,16 @@ https://drive.google.com/drive/folders/1I8uDXJpVJyO8V327RIEC0Zvpt7Y5TlHO?usp=sha
 
 https://drive.google.com/drive/folders/1G4I_EWabs2AvgKsjUqs9eNochHbRq0lc?usp=sharing
 
-```text
 Salin folder tersebut ke:
 
+```text
 backend/storage/app/public/products
+```
+
+Buat Storage Link :
+
+```text
+php artisan storage:link
 ```
 
 3. Setelah import selesai, jalankan backend dan frontend.
