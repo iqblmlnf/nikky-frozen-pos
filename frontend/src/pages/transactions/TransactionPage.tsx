@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Eye, Printer, Search, X } from "lucide-react";
 import { generateReceiptPDF } from "../../utils/receiptPdf";
+import { Download } from "lucide-react";
+import { exportToExcel } from "../../utils/exportExcel";
 
 export default function TransactionPage() {
   const [sales, setSales] = useState<any[]>([]);
@@ -54,6 +56,19 @@ export default function TransactionPage() {
     }
   };
 
+  const handleExportExcel = () => {
+    const excelData = sales.map((sale: any) => ({
+      Invoice: sale.invoice_number,
+      Kasir: sale.user?.name ?? "-",
+      Total: sale.total,
+      Status: sale.payment_status,
+      Metode: sale.payment_method,
+      Tanggal: new Date(sale.created_at).toLocaleString("id-ID"),
+    }));
+
+    exportToExcel(excelData, "Laporan_Transaksi");
+  };
+
   useEffect(() => {
     loadSales();
   }, []);
@@ -96,9 +111,18 @@ export default function TransactionPage() {
       <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden">
         {/* TITLE */}
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">
-            Riwayat Transaksi
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Riwayat Transaksi
+            </h2>
+
+            <button
+              onClick={handleExportExcel}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium">
+              <Download className="w-4 h-4" />
+              Export Excel
+            </button>
+          </div>
 
           <p className="text-gray-500 mt-1">
             Monitoring seluruh transaksi penjualan

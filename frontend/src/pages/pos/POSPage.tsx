@@ -1,8 +1,11 @@
 // src/pages/pos/POSPage.tsx
 
 import { useEffect, useState } from "react";
+import { Wifi, WifiOff } from "lucide-react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { saveOfflineSale } from "../../utils/offlineQueue";
+import SyncButton from "../../components/pos/SyncButton";
 
 import {
   ProductGrid,
@@ -28,6 +31,7 @@ export default function POSPage() {
   const [category, setCategory] = useState("Semua");
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [isOnline, setIsOnline] = useState(true);
 
   const loadProducts = async (branchId?: string) => {
     try {
@@ -38,19 +42,30 @@ export default function POSPage() {
       });
 
       setProducts(res.data);
-    } catch (error: any) {
-      console.error(error);
-
-      Swal.fire({
-        icon: "error",
-        title: "Gagal",
-        text:
-          error?.response?.data?.message ||
-          error.message ||
-          "Gagal memuat produk",
-      });
+    } catch (error) {
+      console.error("Gagal load produk:", error);
     }
   };
+
+  const checkServer = async () => {
+    try {
+      await axios.get("http://localhost:8000/api/branches");
+
+      setIsOnline(true);
+    } catch {
+      setIsOnline(false);
+    }
+  };
+
+  useEffect(() => {
+    checkServer();
+
+    const interval = setInterval(() => {
+      checkServer();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -73,7 +88,7 @@ export default function POSPage() {
           loadProducts(String(user.branch_id));
         }
       } catch (error) {
-        console.error(error);
+        console.error("Gagal load data awal:", error);
       }
     };
 
@@ -181,12 +196,21 @@ export default function POSPage() {
     } catch (error: any) {
       console.error(error);
 
-      Swal.fire({
-        icon: "error",
-        title: "Gagal",
-        text:
-          error?.response?.data?.message || error.message || "Transaksi gagal",
+      saveOfflineSale({
+        user_id: user.id,
+        branch_id: user.role === "owner" ? selectedBranch : user.branch_id,
+        total: subtotal,
+        items: cart,
+        payment_method: paymentMethod,
       });
+
+      Swal.fire({
+        icon: "warning",
+        title: "Offline Mode",
+        text: "Transaksi disimpan lokal dan akan disinkronkan nanti",
+      });
+
+      setCart([]);
     }
   };
 
@@ -194,6 +218,27 @@ export default function POSPage() {
     <div className="h-full flex overflow-hidden bg-gray-50">
       {/* LEFT */}
       <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4">
+        <div className="flex justify-end gap-3">
+          <div
+            className={`
+      flex items-center gap-2
+      px-4 py-2
+      rounded-xl
+      text-sm font-semibold
+      ${isOnline ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}
+    `}
+          >
+            {isOnline ? (
+              <Wifi className="w-4 h-4" />
+            ) : (
+              <WifiOff className="w-4 h-4" />
+            )}
+
+            {isOnline ? "Online" : "Offline"}
+          </div>
+
+          <SyncButton />
+        </div>
         {user.role === "owner" && (
           <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
             <label className="block text-sm font-medium text-gray-600 mb-2">

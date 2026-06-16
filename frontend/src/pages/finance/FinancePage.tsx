@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { Download } from "lucide-react";
+import { exportToExcel } from "../../utils/exportExcel";
 
 import {
   FinanceStats,
@@ -107,8 +109,34 @@ export function FinancePage() {
     date: new Date(sale.created_at).toLocaleDateString("id-ID"),
   }));
 
+  const handleExportFinance = () => {
+    const excelData = sales.map((sale: any) => ({
+      Invoice: sale.invoice_number,
+      Cabang: sale.branch?.name ?? "-",
+      Kasir: sale.user?.name ?? "-",
+      Total: Number(sale.total),
+      Metode: sale.payment_method,
+      Status: sale.payment_status,
+      Tanggal: new Date(sale.created_at).toLocaleString("id-ID"),
+    }));
+
+    exportToExcel(
+      excelData,
+      `Laporan_Keuangan_${new Date().toISOString().slice(0, 10)}`,
+    );
+  };
+
   return (
     <div className="p-4 lg:p-6 space-y-5">
+      <div className="flex justify-end">
+        <button
+          onClick={handleExportFinance}
+          className=" flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium"
+        >
+          <Download className="w-4 h-4" />
+          Export Excel
+        </button>
+      </div>
       <FinanceStats revenue={revenue} expense={expense} profit={profit} />
 
       <FinanceChart data={chartData} period={period} setPeriod={setPeriod} />

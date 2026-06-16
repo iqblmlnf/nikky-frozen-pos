@@ -92,13 +92,6 @@ export const NAV_ITEMS: NavItem[] = [
   },
 
   {
-    id: "offline",
-    label: "Sinkronisasi",
-    icon: Wifi,
-    roles: ["owner", "kasir", "admin_gudang", "admin_keuangan"],
-  },
-
-  {
     id: "audit",
     label: "Audit Trail",
     icon: ClipboardList,
