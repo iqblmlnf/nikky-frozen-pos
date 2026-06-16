@@ -113,13 +113,9 @@ https://drive.google.com/drive/folders/1G4I_EWabs2AvgKsjUqs9eNochHbRq0lc?usp=dri
 
 Salin folder tersebut ke:
 
+```
 backend/storage/app/public/products
-
-Database:
-https://drive.google.com/drive/folders/1I8uDXJpVJyO8V327RIEC0Zvpt7Y5TlHO?usp=drive_link
-
-Folder Produk:
-https://drive.google.com/drive/folders/1G4I_EWabs2AvgKsjUqs9eNochHbRq0lc?usp=drive_link
+```
 
 ### Backend
 
