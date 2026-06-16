@@ -1,5 +1,10 @@
 // src/pages/pos/POSPage.tsx
 
+declare global {
+  interface Window {
+    snap: any;
+  }
+}
 import { useEffect, useState } from "react";
 import { Wifi, WifiOff } from "lucide-react";
 import axios from "axios";
@@ -174,9 +179,80 @@ export default function POSPage() {
     }
 
     try {
+      // =========================
+      // MIDTRANS
+      // =========================
+      if (paymentMethod === "Midtrans") {
+        const snapRes = await axios.post(
+          "http://localhost:8000/api/midtrans/create-transaction",
+          {
+            total: subtotal,
+          },
+        );
+
+        const snapToken = snapRes.data.token;
+
+        // @ts-ignore
+        window.snap.pay(snapToken, {
+          onSuccess: async () => {
+            try {
+              await axios.post("http://localhost:8000/api/sales", {
+                user_id: user.id,
+                branch_id:
+                  user.role === "owner" ? selectedBranch : user.branch_id,
+
+                total: subtotal,
+                items: cart,
+                payment_method: "Midtrans",
+              });
+
+              await Swal.fire({
+                icon: "success",
+                title: "Pembayaran Berhasil",
+                text: "Transaksi berhasil disimpan",
+              });
+
+              setCart([]);
+
+              loadProducts(selectedBranch);
+            } catch (error) {
+              console.error(error);
+            }
+          },
+
+          onPending: () => {
+            Swal.fire({
+              icon: "info",
+              title: "Menunggu Pembayaran",
+              text: "Transaksi masih pending",
+            });
+          },
+
+          onError: () => {
+            Swal.fire({
+              icon: "error",
+              title: "Pembayaran Gagal",
+              text: "Silakan coba lagi",
+            });
+          },
+
+          onClose: () => {
+            Swal.fire({
+              icon: "warning",
+              title: "Dibatalkan",
+              text: "Popup pembayaran ditutup",
+            });
+          },
+        });
+
+        return;
+      }
+
+      // =========================
+      // CASH / TRANSFER
+      // =========================
       await axios.post("http://localhost:8000/api/sales", {
         user_id: user.id,
-
         branch_id: user.role === "owner" ? selectedBranch : user.branch_id,
 
         total: subtotal,
@@ -196,21 +272,27 @@ export default function POSPage() {
     } catch (error: any) {
       console.error(error);
 
-      saveOfflineSale({
-        user_id: user.id,
-        branch_id: user.role === "owner" ? selectedBranch : user.branch_id,
-        total: subtotal,
-        items: cart,
-        payment_method: paymentMethod,
-      });
+      if (paymentMethod !== "Midtrans") {
+        saveOfflineSale({
+          user_id: user.id,
+          branch_id: user.role === "owner" ? selectedBranch : user.branch_id,
+          total: subtotal,
+          items: cart,
+          payment_method: paymentMethod,
+        });
 
-      Swal.fire({
-        icon: "warning",
-        title: "Offline Mode",
-        text: "Transaksi disimpan lokal dan akan disinkronkan nanti",
-      });
-
-      setCart([]);
+        Swal.fire({
+          icon: "warning",
+          title: "Offline Mode",
+          text: "Transaksi disimpan lokal dan akan disinkronkan nanti",
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Midtrans Error",
+          text: "Gagal membuat transaksi pembayaran",
+        });
+      }
     }
   };
 

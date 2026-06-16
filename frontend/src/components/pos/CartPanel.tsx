@@ -105,19 +105,10 @@ export default function CartPanel({
           <select
             value={paymentMethod}
             onChange={(e) => setPaymentMethod(e.target.value)}
-            className="
-            w-full
-            px-4
-            py-3
-            rounded-2xl
-            border
-            border-gray-200
-            bg-white
-          "
           >
             <option value="Cash">💵 Cash</option>
-            <option value="Transfer">🏦 Transfer</option>
-            <option value="QRIS">📱 QRIS</option>
+
+            <option value="Midtrans">💳 Midtrans (QRIS / Gopay / VA)</option>
           </select>
         </div>
 

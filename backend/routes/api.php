@@ -9,6 +9,7 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ProductStockController;
 use App\Http\Controllers\TransferStockController;
+use App\Http\Controllers\Api\MidtransController;
 
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -24,3 +25,4 @@ Route::post('/stock-transfer', [TransferStockController::class, 'store']);
 Route::get('/stock-transfer', [TransferStockController::class, 'index']);
 Route::post('/stock-transfer', [TransferStockController::class, 'store']);
 Route::get('/stock-transfer-history', [TransferStockController::class, 'history']);
+Route::post('/midtrans/create-transaction', [MidtransController::class, 'createTransaction']);
