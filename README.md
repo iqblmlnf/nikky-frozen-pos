@@ -1,212 +1,162 @@
 # Nikky Frozen POS
 
-Sistem Point Of Sale (POS) berbasis Web untuk manajemen toko frozen food multi cabang.
+Sistem Point of Sale (POS) berbasis web untuk toko frozen food dengan dukungan multi cabang, manajemen stok, pembayaran digital Midtrans, serta mode offline untuk memastikan transaksi tetap berjalan meskipun koneksi internet terputus.
 
-## 🚀 Fitur
+## 🚀 Fitur Utama
 
-- Dashboard Analitik
-- Point Of Sale (Kasir)
-- Manajemen Produk
-- Manajemen Stok
-- Transfer Stok Antar Cabang
-- Laporan Keuangan
-- Riwayat Transaksi
-- Audit Log
-- Manajemen Cabang
-- Manajemen User
-- Monitoring Produk Kadaluarsa
+### 🛒 Point of Sale (POS)
+
+* Transaksi penjualan produk
+* Keranjang belanja (cart)
+* Perhitungan subtotal otomatis
+* Metode pembayaran Cash, Transfer, QRIS, dan Midtrans
+
+### 🏪 Multi Cabang
+
+* Manajemen banyak cabang
+* Pemilihan cabang aktif
+* Monitoring performa cabang
+
+### 📦 Manajemen Produk & Stok
+
+* CRUD produk
+* Monitoring stok
+* Transfer stok antar cabang
+* Kategori produk
+
+### 💳 Integrasi Midtrans
+
+* Pembayaran QRIS
+* GoPay
+* Virtual Account
+* Kartu Kredit/Debit
+* Sandbox Mode untuk testing
+
+### 🌐 Offline First
+
+* Deteksi status online/offline
+* Penyimpanan transaksi ke localStorage saat offline
+* Sinkronisasi transaksi otomatis saat koneksi kembali tersedia
+
+### 📊 Dashboard & Laporan
+
+* Statistik penjualan
+* Ringkasan transaksi
+* Monitoring performa cabang
+
+### 🔍 Audit Trail
+
+* Riwayat aktivitas pengguna
+* Pelacakan perubahan data
 
 ---
 
-## 🛠 Tech Stack
+## 🛠️ Teknologi yang Digunakan
 
 ### Frontend
 
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- Axios
-- Recharts
-- SweetAlert2
+* React + TypeScript
+* Vite
+* Tailwind CSS
+* Axios
+* SweetAlert2
+* Lucide React
 
 ### Backend
 
-- Laravel 13
-- PHP 8+
-- MySQL
+* Laravel
+* MySQL
+* Laravel API
+
+### Payment Gateway
+
+* Midtrans Snap API
 
 ---
 
-# 📥 Instalasi Project
-
-## 1. Clone Repository
+## 📂 Struktur Project
 
 ```bash
-git clone https://github.com/iqblmlnf/nikky-frozen-pos.git
-```
-
-```bash
-cd nikky-frozen-pos
-```
-
----
-
-# ⚙️ Setup Backend
-
-Masuk ke folder backend
-
-```bash
-cd backend
-```
-
-Install dependency Laravel
-
-```bash
-composer install
-```
-
-### Copy File Environment
-
-Salin file:
-
-```text
-.env.example
-```
-
-menjadi:
-
-```text
-.env
-```
-
-Generate application key
-
-```bash
-php artisan key:generate
-```
-
-Konfigurasi database pada file `.env`
-
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=nikky_frozen_pos
-DB_USERNAME=root
-DB_PASSWORD=
-```
-
-Jalankan server backend
-
-```bash
-php artisan serve
-```
-
-Backend akan berjalan pada:
-
-```text
-http://localhost:8000
-```
-
----
-
-# 🎨 Setup Frontend
-
-Masuk ke folder frontend
-
-```bash
-cd frontend
-```
-
-Install dependency
-
-```bash
-npm install
-```
-
-Jalankan aplikasi
-
-```bash
-npm run dev
-```
-
-Frontend akan berjalan pada:
-
-```text
-http://localhost:5173
-```
-
----
-
-# 🗄 Setup Database
-
-1. Buat database baru di phpMyAdmin
-
-```sql
-nikky_frozen_pos
-```
-
-2. Import file database dan copy folder products ke backend yang tersedia pada link berikut:
-
-📁 Database Download:
-
-https://drive.google.com/drive/folders/1I8uDXJpVJyO8V327RIEC0Zvpt7Y5TlHO?usp=sharing
-
-📁 Download folder products:
-
-https://drive.google.com/drive/folders/1G4I_EWabs2AvgKsjUqs9eNochHbRq0lc?usp=sharing
-
-Salin folder tersebut ke:
-
-```text
-backend/storage/app/public/products
-```
-
-Buat Storage Link :
-
-```text
-php artisan storage:link
-```
-
-3. Setelah import selesai, jalankan backend dan frontend.
-
----
-
-# 🔑 Akun Demo
-
-## Owner
-
-```text
-Username : owner@nikkyfrozen.com
-Password : password
-```
-
----
-
-# 📂 Struktur Project
-
-```
-nikky-frozen-pos
+nikky-frozen-pos/
 │
-├── backend
-│   ├── app
-│   ├── routes
-│   ├── database
-│   └── ...
+├── frontend/       # React + Vite
 │
-├── frontend
-│   ├── src
-│   ├── public
-│   └── ...
+├── backend/        # Laravel API
 │
 └── README.md
 ```
 
 ---
 
-# 👨‍💻 Developer
+## ⚙️ Instalasi
 
-Iqbal Maulana
+### Clone Repository
 
-Sistem Point Of Sale Frozen Food
+```bash
+git clone https://github.com/USERNAME/nikky-frozen-pos.git
+cd nikky-frozen-pos
+```
+
+### Backend
+
+```bash
+cd backend
+
+composer install
+
+cp .env.example .env
+
+php artisan key:generate
+
+php artisan migrate
+
+php artisan serve
+```
+
+### Frontend
+
+```bash
+cd frontend
+
+npm install
+
+npm run dev
+```
+
+---
+
+## 🔑 Konfigurasi Midtrans
+
+Tambahkan pada file `.env` backend:
+
+```env
+MIDTRANS_SERVER_KEY=YOUR_SERVER_KEY
+MIDTRANS_CLIENT_KEY=YOUR_CLIENT_KEY
+MIDTRANS_IS_PRODUCTION=false
+```
+
+---
+
+## 📸 Screenshot
+
+Tambahkan screenshot aplikasi di folder `/screenshots`.
+
+Contoh:
+
+* Dashboard
+* POS
+* Pembayaran Midtrans
+* Transfer Stok
+* Audit Trail
+
+---
+
+## 👨‍💻 Developer
+
+Dikembangkan sebagai Project UTS Pemrograman.
+
+Nama: [Nama Anda]
+
+Universitas: [Nama Kampus]
+
+Tahun: 2025
