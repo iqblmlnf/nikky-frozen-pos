@@ -88,15 +88,6 @@ nikky-frozen-pos/
 
 ---
 
-## ⚙️ Instalasi
-
-### Clone Repository
-
-```bash
-git clone https://github.com/USERNAME/nikky-frozen-pos.git
-cd nikky-frozen-pos
-```
-
 ### Import Database
 
 Download database dari Google Drive:
@@ -115,6 +106,15 @@ Salin folder tersebut ke:
 
 ```
 backend/storage/app/public/products
+```
+
+## ⚙️ Instalasi
+
+### Clone Repository
+
+```bash
+git clone https://github.com/USERNAME/nikky-frozen-pos.git
+cd nikky-frozen-pos
 ```
 
 ### Backend
