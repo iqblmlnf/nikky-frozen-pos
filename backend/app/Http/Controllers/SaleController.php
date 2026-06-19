@@ -100,6 +100,7 @@ class SaleController extends Controller
     {
         $query = Sale::with([
             'user',
+            'branch',
             'items.product'
         ]);
 

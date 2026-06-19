@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { X } from "lucide-react";
+import { X, Upload, ImageIcon } from "lucide-react";
 import Swal from "sweetalert2";
 
 import type { Product } from "../../types/product";
@@ -36,6 +36,17 @@ export default function ProductModal({
   const [branches, setBranches] = useState<any[]>([]);
   const [expiry, setExpiry] = useState("");
   const [image, setImage] = useState<File | null>(null);
+  const [preview, setPreview] = useState("");
+  const handleImageChange = (
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  const file = e.target.files?.[0];
+
+  if (!file) return;
+
+  setImage(file);
+  setPreview(URL.createObjectURL(file));
+};
 
   useEffect(() => {
     if (editing) {
@@ -45,7 +56,7 @@ export default function ProductModal({
       setPrice(String(editing.price));
       setStock(String(editing.stocks?.[0]?.stock || ""));
       setBranchId(String(editing.stocks?.[0]?.branch_id || ""));
-      
+
       setExpiry(editing.expiry);
     } else {
       setName("");
@@ -221,107 +232,186 @@ export default function ProductModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6">
-        <div className="flex items-center justify-between mb-5">
-          <h3 className="text-lg font-bold text-gray-900">
-            {editing ? "Edit Produk" : "Tambah Produk"}
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto scrollbar-hide">
+        {/* HEADER */}
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-gray-900">
+            {editing ? "Edit Produk" : "Tambah Produk Baru"}
           </h3>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-gray-100"
+            className="p-2 rounded-xl hover:bg-gray-100 transition"
           >
-            <X className="w-4 h-4 text-gray-500" />
+            <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
-        <div className="space-y-4">
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Nama Produk"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200"
-          />
+        {/* IMAGE UPLOAD */}
+        <div className="mb-6">
+          <label className="block text-xs font-bold uppercase text-gray-500 mb-2">
+            Foto Produk
+          </label>
 
-          <input
-            value={sku}
-            onChange={(e) => setSku(e.target.value)}
-            placeholder="SKU"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200"
-          />
+          <label className="border-2 border-dashed border-gray-200 rounded-2xl p-6 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 transition">
+            {preview ? (
+              <img
+                src={preview}
+                alt="preview"
+                className="w-32 h-32 object-cover rounded-2xl mb-3"
+              />
+            ) : editing?.image ? (
+              <img
+                src={`http://localhost:8000/storage/${editing.image}`}
+                alt={editing.name}
+                className="w-32 h-32 object-cover rounded-2xl mb-3"
+              />
+            ) : (
+              <ImageIcon className="w-12 h-12 text-gray-400 mb-2" />
+            )}
 
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200"
-          >
-            <option value="">Pilih Kategori</option>
+            <p className="font-medium text-gray-600">Upload Foto Produk</p>
 
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
+            <p className="text-xs text-gray-400 mt-1">PNG / JPG maksimal 5MB</p>
 
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
-              Rp.
-            </span>
+            <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-white border rounded-xl text-sm">
+              <Upload className="w-4 h-4" />
+              Pilih File
+            </div>
+
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageChange}
+            />
+          </label>
+        </div>
+
+        {/* FORM */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="col-span-2">
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">
+              Nama Produk
+            </label>
+
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50"
+              placeholder="Chicken Nugget 500g"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">
+              SKU
+            </label>
+
+            <input
+              value={sku}
+              onChange={(e) => setSku(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50"
+              placeholder="CHK-001"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">
+              Kategori
+            </label>
+
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50"
+            >
+              <option value="">Pilih Kategori</option>
+
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">
+              Harga Jual
+            </label>
 
             <input
               type="number"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              placeholder="0"
-              className="w-full pl-14 pr-4 py-3 rounded-xl border border-gray-200"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50"
+              placeholder="35000"
             />
           </div>
 
-          <input
-            type="number"
-            value={stock}
-            onChange={(e) => setStock(e.target.value)}
-            placeholder="Stok"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200"
-          />
+          <div>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">
+              Stok Awal
+            </label>
 
-          <select
-            value={branchId}
-            onChange={(e) => setBranchId(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200"
-          >
-            <option value="">Pilih Cabang</option>
-
-            {branches.map((branch) => (
-              <option key={branch.id} value={branch.id}>
-                {branch.name}
-              </option>
-            ))}
-          </select>
-
-          <input
-            type="date"
-            value={expiry}
-            onChange={(e) => setExpiry(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200"
-          />
-
-          {!editing && (
             <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setImage(e.target.files?.[0] || null)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200"
+              type="number"
+              value={stock}
+              onChange={(e) => setStock(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50"
             />
-          )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">
+              Kadaluarsa
+            </label>
+
+            <input
+              type="date"
+              value={expiry}
+              onChange={(e) => setExpiry(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">
+              Cabang
+            </label>
+
+            <select
+              value={branchId}
+              onChange={(e) => setBranchId(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50"
+            >
+              <option value="">Pilih Cabang</option>
+
+              {branches.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* BUTTON */}
+        <div className="flex gap-3 mt-8">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50"
+          >
+            Batal
+          </button>
 
           <button
             onClick={handleSave}
-            className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+            className="flex-1 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition"
           >
-            {editing ? "Update Produk" : "Simpan Produk"}
+            {editing ? "Simpan Perubahan" : "Tambah Produk"}
           </button>
         </div>
       </div>

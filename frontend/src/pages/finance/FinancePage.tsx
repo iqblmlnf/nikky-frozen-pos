@@ -1,13 +1,22 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Download } from "lucide-react";
-import { exportToExcel } from "../../utils/exportExcel";
 
 import {
   FinanceStats,
   FinanceChart,
   FinanceTransactionTable,
 } from "../../components/finance";
+
+interface Transaction {
+  id: number;
+  invoice: string;
+  date: string;
+  cashier: string;
+  branch: string;
+  items: number;
+  payment: string;
+  total: number;
+}
 
 export function FinancePage() {
   const [sales, setSales] = useState<any[]>([]);
@@ -16,7 +25,9 @@ export function FinancePage() {
 
   const loadFinance = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const user = JSON.parse(
+        localStorage.getItem("user") || "{}"
+      );
 
       const params =
         user.role === "owner"
@@ -25,9 +36,12 @@ export function FinancePage() {
               branch_id: user.branch_id,
             };
 
-      const res = await axios.get("http://localhost:8000/api/sales", {
-        params,
-      });
+      const res = await axios.get(
+        "http://localhost:8000/api/sales",
+        {
+          params,
+        }
+      );
 
       const salesData = res.data;
 
@@ -38,31 +52,45 @@ export function FinancePage() {
       for (let i = period - 1; i >= 0; i--) {
         const currentDate = new Date();
 
-        currentDate.setDate(currentDate.getDate() - i);
-
-        const dailySales = salesData.filter(
-          (sale: any) =>
-            new Date(sale.created_at).toDateString() ===
-            currentDate.toDateString(),
+        currentDate.setDate(
+          currentDate.getDate() - i
         );
+
+        const dailySales =
+          salesData.filter(
+            (sale: any) =>
+              new Date(
+                sale.created_at
+              ).toDateString() ===
+              currentDate.toDateString()
+          );
 
         dynamicChart.push({
           name:
             period <= 7
-              ? currentDate.toLocaleDateString("id-ID", {
-                  weekday: "short",
-                })
-              : currentDate.toLocaleDateString("id-ID", {
-                  day: "2-digit",
-                  month: "2-digit",
-                }),
+              ? currentDate.toLocaleDateString(
+                  "id-ID",
+                  {
+                    weekday: "short",
+                  }
+                )
+              : currentDate.toLocaleDateString(
+                  "id-ID",
+                  {
+                    day: "2-digit",
+                    month: "2-digit",
+                  }
+                ),
 
           income: dailySales.reduce(
-            (sum: number, sale: any) => sum + Number(sale.total),
-            0,
+            (
+              sum: number,
+              sale: any
+            ) =>
+              sum +
+              Number(sale.total),
+            0
           ),
-
-          expense: 0,
         });
       }
 
@@ -76,72 +104,126 @@ export function FinancePage() {
     loadFinance();
   }, [period]);
 
-  const filteredSales = sales.filter((sale) => {
-    const saleDate = new Date(sale.created_at);
+  const filteredSales = sales.filter(
+    (sale) => {
+      const saleDate = new Date(
+        sale.created_at
+      );
 
-    const startDate = new Date();
+      const startDate = new Date();
 
-    startDate.setDate(startDate.getDate() - period);
+      startDate.setDate(
+        startDate.getDate() - period
+      );
 
-    return saleDate >= startDate;
-  });
-
-  const revenue = filteredSales.reduce(
-    (sum, sale) => sum + Number(sale.total),
-    0,
+      return saleDate >= startDate;
+    }
   );
 
-  const expense = 0;
+  // =========================
+  // KPI
+  // =========================
 
-  const profit = revenue - expense;
+  const revenue = filteredSales.reduce(
+    (sum, sale) =>
+      sum + Number(sale.total),
+    0
+  );
 
-  const transactions = filteredSales.map((sale: any) => ({
-    id: sale.id,
+  const todayRevenue =
+    filteredSales
+      .filter(
+        (sale) =>
+          new Date(
+            sale.created_at
+          ).toDateString() ===
+          new Date().toDateString()
+      )
+      .reduce(
+        (sum, sale) =>
+          sum +
+          Number(sale.total),
+        0
+      );
 
-    title: sale.invoice_number || `INV-${sale.id}`,
+  const totalTransactions =
+    filteredSales.length;
 
-    category: sale.payment_method || "Penjualan",
+  const avgTransaction =
+    totalTransactions > 0
+      ? revenue / totalTransactions
+      : 0;
 
-    amount: Number(sale.total),
+  // =========================
+  // TABLE DATA
+  // =========================
 
-    type: "income",
+  const transactions: Transaction[] =
+    filteredSales.map(
+      (sale: any) => ({
+        id: sale.id,
 
-    date: new Date(sale.created_at).toLocaleDateString("id-ID"),
-  }));
+        invoice:
+          sale.invoice_number,
 
-  const handleExportFinance = () => {
-    const excelData = sales.map((sale: any) => ({
-      Invoice: sale.invoice_number,
-      Cabang: sale.branch?.name ?? "-",
-      Kasir: sale.user?.name ?? "-",
-      Total: Number(sale.total),
-      Metode: sale.payment_method,
-      Status: sale.payment_status,
-      Tanggal: new Date(sale.created_at).toLocaleString("id-ID"),
-    }));
+        date: new Date(
+          sale.created_at
+        ).toLocaleDateString(
+          "id-ID"
+        ),
 
-    exportToExcel(
-      excelData,
-      `Laporan_Keuangan_${new Date().toISOString().slice(0, 10)}`,
+        cashier:
+          sale.user?.name ??
+          "-",
+
+        branch:
+          sale.branch?.name ??
+          "-",
+
+        items:
+          sale.items?.reduce(
+            (
+              sum: number,
+              item: any
+            ) =>
+              sum +
+              Number(item.qty),
+            0
+          ) ?? 0,
+
+        payment:
+          sale.payment_method,
+
+        total: Number(
+          sale.total
+        ),
+      })
     );
-  };
 
   return (
     <div className="p-4 lg:p-6 space-y-5">
-      <div className="flex justify-end">
-        <button
-          onClick={handleExportFinance}
-          className=" flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium"
-        >
-          <Download className="w-4 h-4" />
-          Export Excel
-        </button>
-      </div>
-      <FinanceStats revenue={revenue} expense={expense} profit={profit} />
+      <FinanceStats
+        revenue={revenue}
+        todayRevenue={todayRevenue}
+        avgTransaction={
+          avgTransaction
+        }
+        totalTransactions={
+          totalTransactions
+        }
+      />
 
-      <FinanceChart data={chartData} period={period} setPeriod={setPeriod} />
+      <FinanceChart
+        data={chartData}
+        period={period}
+        setPeriod={setPeriod}
+      />
 
-      <FinanceTransactionTable transactions={transactions} />
+      <FinanceTransactionTable
+        transactions={
+          transactions
+        }
+      />
     </div>
   );
 }

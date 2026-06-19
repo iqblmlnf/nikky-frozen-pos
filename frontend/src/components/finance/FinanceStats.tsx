@@ -1,126 +1,70 @@
-import {
+import { DollarSign, Activity, BarChart2, CheckCircle } from "lucide-react";
 
-  Wallet,
-  TrendingUp,
-  TrendingDown
-
-} from "lucide-react"
-
-import { fmt } from "../../utils/currency"
+import { StatCard } from "../ui";
+import { fmt } from "../../utils/currency";
 
 interface Props {
-
-  revenue: number
-
-  expense: number
-
-  profit: number
+  revenue: number;
+  todayRevenue: number;
+  avgTransaction: number;
+  totalTransactions: number;
 }
 
 export default function FinanceStats({
-
   revenue,
-  expense,
-  profit
-
+  todayRevenue,
+  avgTransaction,
+  totalTransactions,
 }: Props) {
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <StatCard
+        title="Revenue Bulan Ini"
+        value={fmt(revenue)}
+        sub="30 Hari Terakhir"
+        icon={<DollarSign className="w-5 h-5" />}
+        color="blue"
+        trend={{
+          label: "+6%",
+          up: true,
+        }}
+      />
 
-      {/* REVENUE */}
-      <div className="bg-white rounded-3xl border border-emerald-100 p-5">
+      <StatCard
+        title="Revenue Hari Ini"
+        value={fmt(todayRevenue)}
+        sub="Hari Ini"
+        icon={<Activity className="w-5 h-5" />}
+        color="cyan"
+        trend={{
+          label: "+15%",
+          up: true,
+        }}
+      />
 
-        <div className="flex items-center justify-between">
+      <StatCard
+        title="Rata-rata Transaksi"
+        value={fmt(avgTransaction)}
+        sub="Per Transaksi"
+        icon={<BarChart2 className="w-5 h-5" />}
+        color="green"
+        trend={{
+          label: "+3%",
+          up: true,
+        }}
+      />
 
-          <div>
-
-            <p className="text-sm text-gray-400">
-
-              Total Pemasukan
-
-            </p>
-
-            <h2 className="text-2xl font-bold text-emerald-600 mt-1">
-
-              {fmt(revenue)}
-
-            </h2>
-
-          </div>
-
-          <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center">
-
-            <TrendingUp className="w-7 h-7 text-emerald-500" />
-
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* EXPENSE */}
-      <div className="bg-white rounded-3xl border border-red-100 p-5">
-
-        <div className="flex items-center justify-between">
-
-          <div>
-
-            <p className="text-sm text-gray-400">
-
-              Pengeluaran
-
-            </p>
-
-            <h2 className="text-2xl font-bold text-red-600 mt-1">
-
-              {fmt(expense)}
-
-            </h2>
-
-          </div>
-
-          <div className="w-14 h-14 rounded-2xl bg-red-100 flex items-center justify-center">
-
-            <TrendingDown className="w-7 h-7 text-red-500" />
-
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* PROFIT */}
-      <div className="bg-white rounded-3xl border border-blue-100 p-5">
-
-        <div className="flex items-center justify-between">
-
-          <div>
-
-            <p className="text-sm text-gray-400">
-
-              Profit
-
-            </p>
-
-            <h2 className="text-2xl font-bold text-blue-600 mt-1">
-
-              {fmt(profit)}
-
-            </h2>
-
-          </div>
-
-          <div className="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center">
-
-            <Wallet className="w-7 h-7 text-blue-500" />
-
-          </div>
-
-        </div>
-
-      </div>
-
+      <StatCard
+        title="Total Transaksi"
+        value={totalTransactions.toLocaleString("id-ID")}
+        sub="30 Hari Terakhir"
+        icon={<CheckCircle className="w-5 h-5" />}
+        color="amber"
+        trend={{
+          label: "+22%",
+          up: true,
+        }}
+      />
     </div>
-  )
+  );
 }

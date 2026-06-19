@@ -1,85 +1,72 @@
-import {
-  PackageX,
-  AlertTriangle
-} from "lucide-react"
+import { Package2, AlertCircle, Layers } from "lucide-react";
 
 interface Props {
-  lowStockCount: number
-  emptyStockCount: number
+  totalStock: number;
+  lowStockCount: number;
+  activeProducts: number;
 }
 
 export default function StockStats({
-
+  totalStock,
   lowStockCount,
-  emptyStockCount
-
+  activeProducts,
 }: Props) {
+  const cards = [
+    {
+      title: "Total Stok",
+      value: Number(totalStock ?? 0).toLocaleString(),
+      sub: "semua produk",
+      icon: <Package2 className="w-5 h-5" />,
+      bg: "bg-blue-50",
+      iconBg: "bg-blue-100",
+      color: "text-blue-600",
+    },
+    {
+      title: "Stok Menipis",
+      value: String(lowStockCount),
+      sub: "< 10 unit tersisa",
+      icon: <AlertCircle className="w-5 h-5" />,
+      bg: "bg-amber-50",
+      iconBg: "bg-amber-100",
+      color: "text-amber-600",
+    },
+    {
+      title: "Produk Aktif",
+      value: String(activeProducts),
+      sub: "terdaftar di sistem",
+      icon: <Layers className="w-5 h-5" />,
+      bg: "bg-cyan-50",
+      iconBg: "bg-cyan-100",
+      color: "text-cyan-600",
+    },
+  ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {cards.map((card) => (
+        <div
+          key={card.title}
+          className={`${card.bg} rounded-3xl border border-white p-5`}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">{card.title}</p>
 
-      {/* LOW STOCK */}
-      <div className="bg-white rounded-3xl border border-yellow-100 p-5">
+              <h2 className={`text-3xl font-bold mt-1 ${card.color}`}>
+                {card.value}
+              </h2>
 
-        <div className="flex items-center justify-between">
+              <p className="text-xs text-gray-400 mt-1">{card.sub}</p>
+            </div>
 
-          <div>
-
-            <p className="text-sm text-gray-400">
-
-              Stok Menipis
-
-            </p>
-
-            <h2 className="text-3xl font-bold text-yellow-500 mt-1">
-
-              {lowStockCount}
-
-            </h2>
-
+            <div
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center ${card.iconBg}`}
+            >
+              <div className={card.color}>{card.icon}</div>
+            </div>
           </div>
-
-          <div className="w-14 h-14 rounded-2xl bg-yellow-100 flex items-center justify-center">
-
-            <AlertTriangle className="w-7 h-7 text-yellow-500" />
-
-          </div>
-
         </div>
-
-      </div>
-
-      {/* EMPTY */}
-      <div className="bg-white rounded-3xl border border-red-100 p-5">
-
-        <div className="flex items-center justify-between">
-
-          <div>
-
-            <p className="text-sm text-gray-400">
-
-              Stok Habis
-
-            </p>
-
-            <h2 className="text-3xl font-bold text-red-600 mt-1">
-
-              {emptyStockCount}
-
-            </h2>
-
-          </div>
-
-          <div className="w-14 h-14 rounded-2xl bg-red-100 flex items-center justify-center">
-
-            <PackageX className="w-7 h-7 text-red-500" />
-
-          </div>
-
-        </div>
-
-      </div>
-
+      ))}
     </div>
-  )
+  );
 }

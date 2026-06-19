@@ -5,20 +5,19 @@ import { daysFromNow } from "../../utils/date";
 
 import {
   ExpiryStats,
-  ExpiryToolbar,
-  ExpiryTable,
+  ExpiryAlertList,
 } from "../../components/expiry";
 
 export default function ExpiryPage() {
   const [products, setProducts] = useState<any[]>([]);
-
   const [search, setSearch] = useState("");
-
   const [status, setStatus] = useState("Semua");
 
   const loadProducts = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/products");
+      const res = await axios.get(
+        "http://localhost:8000/api/products"
+      );
 
       setProducts(res.data);
     } catch (error) {
@@ -30,6 +29,32 @@ export default function ExpiryPage() {
     loadProducts();
   }, []);
 
+  const expired = products.filter(
+    (p) => daysFromNow(p.expiry) < 0
+  );
+
+  const todayExp = products.filter(
+    (p) => daysFromNow(p.expiry) === 0
+  );
+
+  const weekExp = products.filter((p) => {
+    const d = daysFromNow(p.expiry);
+    return d > 0 && d <= 7;
+  });
+
+  const monthExp = products.filter((p) => {
+    const d = daysFromNow(p.expiry);
+    return d > 7 && d <= 30;
+  });
+
+  const allWarning = products
+    .filter((p) => daysFromNow(p.expiry) <= 30)
+    .sort(
+      (a, b) =>
+        daysFromNow(a.expiry) -
+        daysFromNow(b.expiry)
+    );
+
   const filtered = products.filter((product) => {
     const days = daysFromNow(product.expiry);
 
@@ -40,35 +65,26 @@ export default function ExpiryPage() {
     const matchesStatus =
       status === "Semua" ||
       (status === "Expired" && days < 0) ||
-      (status === "Hampir Expired" && days >= 0 && days <= 7) ||
+      (status === "Hampir Expired" &&
+        days >= 0 &&
+        days <= 7) ||
       (status === "Aman" && days > 7);
 
     return matchesSearch && matchesStatus;
   });
 
-  const expiredCount = products.filter((p) => daysFromNow(p.expiry) < 0).length;
-
-  const warningCount = products.filter((p) => {
-    const days = daysFromNow(p.expiry);
-
-    return days >= 0 && days <= 7;
-  }).length;
-
   return (
     <div className="p-4 lg:p-6 space-y-5">
-      {/* STATS */}
-      <ExpiryStats expiredCount={expiredCount} warningCount={warningCount} />
-
-      {/* TOOLBAR */}
-      <ExpiryToolbar
-        search={search}
-        setSearch={setSearch}
-        status={status}
-        setStatus={setStatus}
+      <ExpiryStats
+        expired={expired.length}
+        today={todayExp.length}
+        week={weekExp.length}
+        month={monthExp.length}
       />
 
-      {/* TABLE */}
-      <ExpiryTable products={filtered} />
+      <ExpiryAlertList
+        products={allWarning}
+      />
     </div>
   );
 }

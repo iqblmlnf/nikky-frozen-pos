@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
+import { Building2 } from "lucide-react";
 import axios from "axios";
 import Swal from "sweetalert2";
-
+import type { Stock } from "../../types/stock";
 import StockToolbar from "../../components/stock/StockToolbar";
 import StockTable from "../../components/stock/StockTable";
+import StockStats from "../../components/stock/StockStats";
 
 export default function StockPage() {
-  const [stocks, setStocks] = useState<any[]>([]);
+  const [stocks, setStocks] = useState<Stock[]>([]);
   const [search, setSearch] = useState("");
-
-  const [editing, setEditing] = useState<any>(null);
+  const [activeBranch, setActiveBranch] = useState<number>(0);
+  const [editing, setEditing] = useState<Stock | null>(null);
   const [stockValue, setStockValue] = useState("");
 
   const loadStocks = async () => {
@@ -36,14 +38,31 @@ export default function StockPage() {
   useEffect(() => {
     loadStocks();
   }, []);
-
-  const filteredStocks = stocks.filter(
-    (item: any) =>
-      item.product?.name?.toLowerCase().includes(search.toLowerCase()) ||
-      item.product?.sku?.toLowerCase().includes(search.toLowerCase()),
+  const branches = Array.from(
+    new Map(
+      stocks
+        .filter((item) => item.branch)
+        .map((item) => [item.branch.id, item.branch]),
+    ).values(),
   );
 
-  const openEditModal = (item: any) => {
+  const filteredStocks = stocks.filter((item) => {
+    const matchSearch =
+      item.product?.name?.toLowerCase().includes(search.toLowerCase()) ||
+      item.product?.sku?.toLowerCase().includes(search.toLowerCase());
+
+    const matchBranch = activeBranch === 0 || item.branch?.id === activeBranch;
+
+    return matchSearch && matchBranch;
+  });
+  const totalStock = filteredStocks.reduce(
+    (sum, item) => sum + Number(item.stock),
+    0,
+  );
+
+  const lowStock = filteredStocks.filter((item) => item.stock <= 10);
+
+  const openEditModal = (item: Stock) => {
     setEditing(item);
     setStockValue(String(item.stock));
   };
@@ -78,7 +97,70 @@ export default function StockPage() {
   };
 
   return (
-    <div className="p-4 lg:p-6 space-y-4">
+    <div className="p-4 lg:p-6 space-y-5">
+      <StockStats
+        totalStock={totalStock}
+        lowStockCount={lowStock.length}
+        activeProducts={filteredStocks.length}
+      />
+
+      {lowStock.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+          <p className="font-bold text-amber-700">
+            {lowStock.length} produk stok menipis
+          </p>
+
+          <div className="flex flex-wrap gap-2 mt-3">
+            {lowStock.map((item) => (
+              <span
+                key={item.id}
+                className="
+                px-3 py-1
+                rounded-xl
+                bg-white
+                border border-amber-200
+                text-xs
+              "
+              >
+                {item.product?.name}
+
+                <span className="ml-1 font-bold text-red-600">
+                  {item.stock}
+                </span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <button
+          onClick={() => setActiveBranch(0)}
+          className={`flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
+            activeBranch === 0
+              ? "bg-blue-600 text-white border-blue-600"
+              : "bg-white text-gray-600 border-gray-200 hover:border-blue-300"
+          }`}
+        >
+          <Building2 className="w-4 h-4" />
+          Semua Cabang
+        </button>
+
+        {branches.map((branch) => (
+          <button
+            key={branch.id}
+            onClick={() => setActiveBranch(branch.id)}
+            className={`flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
+              activeBranch === branch.id
+                ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                : "bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:bg-blue-50"
+            }`}
+          >
+            <Building2 className="w-4 h-4" />
+            {branch.name}
+          </button>
+        ))}
+      </div>
+
       <StockToolbar search={search} setSearch={setSearch} />
 
       <StockTable stocks={filteredStocks} onEdit={openEditModal} />
