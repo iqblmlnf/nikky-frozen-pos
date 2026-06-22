@@ -11,6 +11,7 @@ import {
 
 export function FinancePage() {
   const [sales, setSales] = useState<any[]>([]);
+  const [expenses, setExpenses] = useState<any[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
   const [period, setPeriod] = useState(30);
 
@@ -25,13 +26,17 @@ export function FinancePage() {
               branch_id: user.branch_id,
             };
 
-      const res = await axios.get("http://localhost:8000/api/sales", {
+      const salesRes = await axios.get("http://localhost:8000/api/sales", {
         params,
       });
 
-      const salesData = res.data;
+      const expenseRes = await axios.get("http://localhost:8000/api/expenses");
+
+      const salesData = salesRes.data;
+      const expenseData = expenseRes.data;
 
       setSales(salesData);
+      setExpenses(expenseData);
 
       const dynamicChart = [];
 
@@ -43,6 +48,12 @@ export function FinancePage() {
         const dailySales = salesData.filter(
           (sale: any) =>
             new Date(sale.created_at).toDateString() ===
+            currentDate.toDateString(),
+        );
+
+        const dailyExpenses = expenseData.filter(
+          (expense: any) =>
+            new Date(expense.created_at).toDateString() ===
             currentDate.toDateString(),
         );
 
@@ -62,7 +73,10 @@ export function FinancePage() {
             0,
           ),
 
-          expense: 0,
+          expense: dailyExpenses.reduce(
+            (sum: number, expense: any) => sum + Number(expense.amount),
+            0,
+          ),
         });
       }
 
@@ -86,16 +100,29 @@ export function FinancePage() {
     return saleDate >= startDate;
   });
 
+  const filteredExpenses = expenses.filter((expense) => {
+    const expenseDate = new Date(expense.created_at);
+
+    const startDate = new Date();
+
+    startDate.setDate(startDate.getDate() - period);
+
+    return expenseDate >= startDate;
+  });
+
   const revenue = filteredSales.reduce(
     (sum, sale) => sum + Number(sale.total),
     0,
   );
 
-  const expense = 0;
+  const expense = filteredExpenses.reduce(
+    (sum, item) => sum + Number(item.amount),
+    0,
+  );
 
   const profit = revenue - expense;
 
-  const transactions = filteredSales.map((sale: any) => ({
+  const incomeTransactions = filteredSales.map((sale: any) => ({
     id: sale.id,
 
     title: sale.invoice_number || `INV-${sale.id}`,
@@ -109,16 +136,54 @@ export function FinancePage() {
     date: new Date(sale.created_at).toLocaleDateString("id-ID"),
   }));
 
+  const expenseTransactions = filteredExpenses.map((expense: any) => ({
+    id: expense.id,
+
+    title: expense.title || expense.category,
+
+    category: expense.category,
+
+    amount: Number(expense.amount),
+
+    type: "expense",
+
+    date: new Date(expense.created_at).toLocaleDateString("id-ID"),
+  }));
+
+  const allTransactions = [...incomeTransactions, ...expenseTransactions].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+
   const handleExportFinance = () => {
-    const excelData = sales.map((sale: any) => ({
-      Invoice: sale.invoice_number,
+    const incomeData = sales.map((sale: any) => ({
+      Tipe: "Pemasukan",
+
+      Invoice: sale.invoice_number || `INV-${sale.id}`,
+
       Cabang: sale.branch?.name ?? "-",
+
       Kasir: sale.user?.name ?? "-",
-      Total: Number(sale.total),
+
+      Nominal: Number(sale.total),
+
       Metode: sale.payment_method,
-      Status: sale.payment_status,
+
       Tanggal: new Date(sale.created_at).toLocaleString("id-ID"),
     }));
+
+    const expenseData = expenses.map((expense: any) => ({
+      Tipe: "Pengeluaran",
+
+      Keterangan: expense.title || expense.category,
+
+      Kategori: expense.category,
+
+      Nominal: Number(expense.amount),
+
+      Tanggal: new Date(expense.created_at).toLocaleString("id-ID"),
+    }));
+
+    const excelData = [...incomeData, ...expenseData];
 
     exportToExcel(
       excelData,
@@ -131,17 +196,29 @@ export function FinancePage() {
       <div className="flex justify-end">
         <button
           onClick={handleExportFinance}
-          className=" flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium"
+          className="
+            flex
+            items-center
+            gap-2
+            px-4
+            py-2
+            bg-green-600
+            hover:bg-green-700
+            text-white
+            rounded-xl
+            font-medium
+          "
         >
           <Download className="w-4 h-4" />
           Export Excel
         </button>
       </div>
+
       <FinanceStats revenue={revenue} expense={expense} profit={profit} />
 
       <FinanceChart data={chartData} period={period} setPeriod={setPeriod} />
 
-      <FinanceTransactionTable transactions={transactions} />
+      <FinanceTransactionTable transactions={allTransactions} />
     </div>
   );
 }
