@@ -37,16 +37,14 @@ export default function ProductModal({
   const [expiry, setExpiry] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
-  const handleImageChange = (
-  e: React.ChangeEvent<HTMLInputElement>
-) => {
-  const file = e.target.files?.[0];
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
 
-  if (!file) return;
+    if (!file) return;
 
-  setImage(file);
-  setPreview(URL.createObjectURL(file));
-};
+    setImage(file);
+    setPreview(URL.createObjectURL(file));
+  };
 
   useEffect(() => {
     if (editing) {
@@ -161,16 +159,32 @@ export default function ProductModal({
       if (editing) {
         const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-        await axios.put(`http://localhost:8000/api/products/${editing.id}`, {
-          sku,
-          name,
-          category,
-          price,
-          stock,
-          branch_id: branchId,
-          expiry,
-          user_id: user.id,
-        });
+        const formData = new FormData();
+
+        formData.append("sku", sku);
+        formData.append("name", name);
+        formData.append("category", category);
+        formData.append("price", price);
+        formData.append("stock", stock);
+        formData.append("branch_id", branchId);
+        formData.append("expiry", expiry);
+        formData.append("user_id", String(user.id));
+
+        if (image) {
+          formData.append("image", image);
+        }
+
+        formData.append("_method", "PUT");
+
+        await axios.post(
+          `http://localhost:8000/api/products/${editing.id}`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          },
+        );
 
         await Swal.fire({
           icon: "success",

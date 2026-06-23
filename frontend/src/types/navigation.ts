@@ -9,6 +9,7 @@ export type Page =
   | "stock"
   | "transfer-stock"
   | "finance"
+  | "expenses"
   | "users"
   | "branches"
   | "offline"

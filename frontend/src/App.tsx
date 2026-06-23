@@ -16,6 +16,7 @@ import TransactionPage from "./pages/transactions/TransactionPage";
 import AuditPage from "./pages/audit/AuditPage";
 import BranchPage from "./pages/branches/BranchPage";
 import TransferStockPage from "./pages/transfer-stock/TransferStockPage";
+import ExpensePage from "./pages/expenses/ExpensePage";
 
 import type { Page, Role } from "./types";
 
@@ -79,6 +80,9 @@ export default function App() {
 
       case "transfer-stock":
         return <TransferStockPage />;
+
+      case "expenses":
+        return <ExpensePage />;
 
       default:
         return <DashboardPage />;

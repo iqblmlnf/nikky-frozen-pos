@@ -20,14 +20,13 @@ interface Transaction {
 
 export function FinancePage() {
   const [sales, setSales] = useState<any[]>([]);
+  const [expenses, setExpenses] = useState<any[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
   const [period, setPeriod] = useState(30);
 
   const loadFinance = async () => {
     try {
-      const user = JSON.parse(
-        localStorage.getItem("user") || "{}"
-      );
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
 
       const params =
         user.role === "owner"
@@ -36,60 +35,47 @@ export function FinancePage() {
               branch_id: user.branch_id,
             };
 
-      const res = await axios.get(
-        "http://localhost:8000/api/sales",
-        {
-          params,
-        }
-      );
+      const salesRes = await axios.get("http://localhost:8000/api/sales", {
+        params,
+      });
 
-      const salesData = res.data;
+      const expenseRes = await axios.get("http://localhost:8000/api/expenses", {
+        params,
+      });
+
+      const salesData = salesRes.data;
+      const expenseData = expenseRes.data;
 
       setSales(salesData);
+      setExpenses(expenseData);
 
       const dynamicChart = [];
 
       for (let i = period - 1; i >= 0; i--) {
         const currentDate = new Date();
 
-        currentDate.setDate(
-          currentDate.getDate() - i
-        );
+        currentDate.setDate(currentDate.getDate() - i);
 
-        const dailySales =
-          salesData.filter(
-            (sale: any) =>
-              new Date(
-                sale.created_at
-              ).toDateString() ===
-              currentDate.toDateString()
-          );
+        const dailySales = salesData.filter(
+          (sale: any) =>
+            new Date(sale.created_at).toDateString() ===
+            currentDate.toDateString(),
+        );
 
         dynamicChart.push({
           name:
             period <= 7
-              ? currentDate.toLocaleDateString(
-                  "id-ID",
-                  {
-                    weekday: "short",
-                  }
-                )
-              : currentDate.toLocaleDateString(
-                  "id-ID",
-                  {
-                    day: "2-digit",
-                    month: "2-digit",
-                  }
-                ),
+              ? currentDate.toLocaleDateString("id-ID", {
+                  weekday: "short",
+                })
+              : currentDate.toLocaleDateString("id-ID", {
+                  day: "2-digit",
+                  month: "2-digit",
+                }),
 
           income: dailySales.reduce(
-            (
-              sum: number,
-              sale: any
-            ) =>
-              sum +
-              Number(sale.total),
-            0
+            (sum: number, sale: any) => sum + Number(sale.total),
+            0,
           ),
         });
       }
@@ -104,126 +90,67 @@ export function FinancePage() {
     loadFinance();
   }, [period]);
 
-  const filteredSales = sales.filter(
-    (sale) => {
-      const saleDate = new Date(
-        sale.created_at
-      );
+  const filteredSales = sales.filter((sale) => {
+    const saleDate = new Date(sale.created_at);
 
-      const startDate = new Date();
+    const startDate = new Date();
 
-      startDate.setDate(
-        startDate.getDate() - period
-      );
+    startDate.setDate(startDate.getDate() - period);
 
-      return saleDate >= startDate;
-    }
-  );
-
-  // =========================
-  // KPI
-  // =========================
+    return saleDate >= startDate;
+  });
 
   const revenue = filteredSales.reduce(
-    (sum, sale) =>
-      sum + Number(sale.total),
-    0
+    (sum, sale) => sum + Number(sale.total),
+    0,
   );
 
-  const todayRevenue =
-    filteredSales
-      .filter(
-        (sale) =>
-          new Date(
-            sale.created_at
-          ).toDateString() ===
-          new Date().toDateString()
-      )
-      .reduce(
-        (sum, sale) =>
-          sum +
-          Number(sale.total),
-        0
-      );
+  const todayRevenue = filteredSales
+    .filter(
+      (sale) =>
+        new Date(sale.created_at).toDateString() === new Date().toDateString(),
+    )
+    .reduce((sum, sale) => sum + Number(sale.total), 0);
 
-  const totalTransactions =
-    filteredSales.length;
+  const totalTransactions = filteredSales.length;
 
   const avgTransaction =
-    totalTransactions > 0
-      ? revenue / totalTransactions
-      : 0;
+    totalTransactions > 0 ? revenue / totalTransactions : 0;
 
-  // =========================
-  // TABLE DATA
-  // =========================
+  const transactions: Transaction[] = filteredSales.map((sale: any) => ({
+    id: sale.id,
 
-  const transactions: Transaction[] =
-    filteredSales.map(
-      (sale: any) => ({
-        id: sale.id,
+    invoice: sale.invoice_number,
 
-        invoice:
-          sale.invoice_number,
+    date: new Date(sale.created_at).toLocaleDateString("id-ID"),
 
-        date: new Date(
-          sale.created_at
-        ).toLocaleDateString(
-          "id-ID"
-        ),
+    cashier: sale.user?.name ?? "-",
 
-        cashier:
-          sale.user?.name ??
-          "-",
+    branch: sale.branch?.name ?? "-",
 
-        branch:
-          sale.branch?.name ??
-          "-",
+    items:
+      sale.items?.reduce(
+        (sum: number, item: any) => sum + Number(item.qty),
+        0,
+      ) ?? 0,
 
-        items:
-          sale.items?.reduce(
-            (
-              sum: number,
-              item: any
-            ) =>
-              sum +
-              Number(item.qty),
-            0
-          ) ?? 0,
+    payment: sale.payment_method,
 
-        payment:
-          sale.payment_method,
-
-        total: Number(
-          sale.total
-        ),
-      })
-    );
+    total: Number(sale.total),
+  }));
 
   return (
     <div className="p-4 lg:p-6 space-y-5">
       <FinanceStats
         revenue={revenue}
         todayRevenue={todayRevenue}
-        avgTransaction={
-          avgTransaction
-        }
-        totalTransactions={
-          totalTransactions
-        }
+        avgTransaction={avgTransaction}
+        totalTransactions={totalTransactions}
       />
 
-      <FinanceChart
-        data={chartData}
-        period={period}
-        setPeriod={setPeriod}
-      />
+      <FinanceChart data={chartData} period={period} setPeriod={setPeriod} />
 
-      <FinanceTransactionTable
-        transactions={
-          transactions
-        }
-      />
+      <FinanceTransactionTable transactions={transactions} />
     </div>
   );
 }

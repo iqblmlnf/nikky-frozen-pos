@@ -80,12 +80,21 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
+        $imagePath = $product->image;
+
+        if ($request->hasFile('image')) {
+            $imagePath = $request
+                ->file('image')
+                ->store('products', 'public');
+        }
+
         $product->update([
             'sku' => $request->sku,
             'name' => $request->name,
             'category' => $request->category,
             'price' => $request->price,
             'expiry' => $request->expiry,
+            'image' => $imagePath,
         ]);
 
         ProductStock::updateOrCreate(

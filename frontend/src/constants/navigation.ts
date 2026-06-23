@@ -14,6 +14,7 @@ import {
   Receipt,
   ClipboardList,
   Building2,
+  Wallet,
   ArrowRightLeft,
 } from "lucide-react";
 
@@ -74,6 +75,13 @@ export const NAV_ITEMS: NavItem[] = [
     id: "finance",
     label: "Keuangan",
     icon: BarChart2,
+    roles: ["owner", "admin_keuangan"],
+  },
+
+  {
+    id: "expenses",
+    label: "Pengeluaran",
+    icon: Wallet,
     roles: ["owner", "admin_keuangan"],
   },
 
