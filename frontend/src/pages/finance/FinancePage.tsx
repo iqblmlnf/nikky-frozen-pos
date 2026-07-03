@@ -62,6 +62,12 @@ export function FinancePage() {
             currentDate.toDateString(),
         );
 
+        const dailyExpenses = expenseData.filter(
+          (expense: any) =>
+            new Date(expense.created_at).toDateString() ===
+            currentDate.toDateString(),
+        );
+
         dynamicChart.push({
           name:
             period <= 7
@@ -75,6 +81,11 @@ export function FinancePage() {
 
           income: dailySales.reduce(
             (sum: number, sale: any) => sum + Number(sale.total),
+            0,
+          ),
+
+          expense: dailyExpenses.reduce(
+            (sum: number, expense: any) => sum + Number(expense.amount),
             0,
           ),
         });
@@ -100,10 +111,27 @@ export function FinancePage() {
     return saleDate >= startDate;
   });
 
+  const filteredExpenses = expenses.filter((expense) => {
+    const expenseDate = new Date(expense.created_at);
+
+    const startDate = new Date();
+
+    startDate.setDate(startDate.getDate() - period);
+
+    return expenseDate >= startDate;
+  });
+
   const revenue = filteredSales.reduce(
     (sum, sale) => sum + Number(sale.total),
     0,
   );
+
+  const expense = filteredExpenses.reduce(
+    (sum, item) => sum + Number(item.amount),
+    0,
+  );
+
+  const profit = revenue - expense;
 
   const todayRevenue = filteredSales
     .filter(
@@ -120,7 +148,7 @@ export function FinancePage() {
   const transactions: Transaction[] = filteredSales.map((sale: any) => ({
     id: sale.id,
 
-    invoice: sale.invoice_number,
+    invoice: sale.invoice_number || `INV-${sale.id}`,
 
     date: new Date(sale.created_at).toLocaleDateString("id-ID"),
 
@@ -134,7 +162,7 @@ export function FinancePage() {
         0,
       ) ?? 0,
 
-    payment: sale.payment_method,
+    payment: sale.payment_method ?? "-",
 
     total: Number(sale.total),
   }));
@@ -143,6 +171,8 @@ export function FinancePage() {
     <div className="p-4 lg:p-6 space-y-5">
       <FinanceStats
         revenue={revenue}
+        expense={expense}
+        profit={profit}
         todayRevenue={todayRevenue}
         avgTransaction={avgTransaction}
         totalTransactions={totalTransactions}
