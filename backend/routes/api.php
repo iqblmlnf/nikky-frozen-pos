@@ -15,6 +15,8 @@ use App\Http\Controllers\DashboardController;
 
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::get('/dashboard/summary', [DashboardController::class, 'summary']);
 Route::get('/products-expiring', [ProductController::class, 'expiring']);
 Route::apiResource('products', ProductController::class);

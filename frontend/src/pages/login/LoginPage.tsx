@@ -1,26 +1,38 @@
 import { api } from "../../lib/api";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Swal from "sweetalert2";
 import {
-  Snowflake,
-  Star,
-  ShoppingCart,
-  Package,
+  ArrowLeft,
+  CheckCircle2,
   DollarSign,
   Eye,
   EyeOff,
-  CheckCircle2,
+  KeyRound,
+  LockKeyhole,
+  Mail,
+  Package,
+  ShoppingCart,
+  Snowflake,
+  Star,
 } from "lucide-react";
 
 interface LoginProps {
   onLogin: () => void;
 }
 
+type LoginMode = "login" | "forgot" | "reset";
+
 export default function Login({ onLogin }: LoginProps) {
+  const query = useMemo(() => new URLSearchParams(window.location.search), []);
+  const resetToken = query.get("reset_token") || "";
+  const resetEmail = query.get("email") || "";
+
+  const [mode, setMode] = useState<LoginMode>(resetToken ? "reset" : "login");
   const [selectedRole, setSelectedRole] = useState("Admin Gudang");
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(resetEmail);
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const roles = [
@@ -67,14 +79,14 @@ export default function Login({ onLogin }: LoginProps) {
         await Swal.fire({
           icon: "error",
           title: "Role Tidak Sesuai",
-          text: `Akun ini terdaftar sebagai ${response.data.user.role}, bukan ${selectedRole}.`, 
+          text: `Akun ini terdaftar sebagai ${response.data.user.role}, bukan ${selectedRole}.`,
         });
 
         return;
       }
 
-      // Ganti localStorage menjadi sessionStorage
       sessionStorage.setItem("user", JSON.stringify(response.data.user));
+
       await Swal.fire({
         icon: "success",
         title: "Login Berhasil",
@@ -82,6 +94,7 @@ export default function Login({ onLogin }: LoginProps) {
         timer: 1500,
         showConfirmButton: false,
       });
+
       onLogin();
     } catch (error: any) {
       Swal.fire({
@@ -94,9 +107,112 @@ export default function Login({ onLogin }: LoginProps) {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      Swal.fire({
+        icon: "warning",
+        title: "Email wajib diisi",
+        text: "Masukkan email akun terlebih dahulu.",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await api.post("/forgot-password", {
+        email,
+      });
+
+      await Swal.fire({
+        icon: "success",
+        title: "Link Reset Dibuat",
+        html: `
+          <p style="margin-bottom: 12px;">${response.data.message}</p>
+          ${
+            response.data.reset_url
+              ? `<a href="${response.data.reset_url}" style="color:#2563eb;word-break:break-all;">${response.data.reset_url}</a>`
+              : ""
+          }
+        `,
+      });
+    } catch (error: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: error?.response?.data?.message || "Tidak bisa membuat link reset.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (password.length < 6) {
+      Swal.fire({
+        icon: "warning",
+        title: "Password terlalu pendek",
+        text: "Password minimal 6 karakter.",
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Swal.fire({
+        icon: "warning",
+        title: "Konfirmasi tidak sama",
+        text: "Password baru dan konfirmasi password harus sama.",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      await api.post("/reset-password", {
+        email,
+        token: resetToken,
+        password,
+        password_confirmation: confirmPassword,
+      });
+
+      await Swal.fire({
+        icon: "success",
+        title: "Password Berhasil Diubah",
+        text: "Silakan login dengan password baru.",
+      });
+
+      window.history.replaceState({}, "", window.location.pathname);
+      setMode("login");
+      setPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Reset Password",
+        text: error?.response?.data?.message || "Link reset tidak valid.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const title =
+    mode === "forgot"
+      ? "Lupa Password"
+      : mode === "reset"
+        ? "Reset Password"
+        : "Selamat Datang";
+
+  const description =
+    mode === "forgot"
+      ? "Masukkan email akun untuk membuat link reset password"
+      : mode === "reset"
+        ? "Buat password baru untuk akun Anda"
+        : "Pilih peran dan masuk ke sistem POS";
+
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
-      {/* LEFT SIDE */}
       <div className="hidden lg:flex relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-blue-950 text-white">
         <div className="absolute inset-0 opacity-10">
           <Snowflake className="absolute top-20 left-10 w-24 h-24" />
@@ -113,17 +229,13 @@ export default function Login({ onLogin }: LoginProps) {
 
             <div>
               <h1 className="text-5xl font-bold">Nikky Frozen</h1>
-
               <p className="text-blue-100 text-xl">Point of Sale System</p>
             </div>
           </div>
 
           <div className="w-72 h-72 rounded-3xl border border-white/20 bg-white/10 backdrop-blur flex flex-col items-center justify-center mb-10">
-            <div className="text-8xl">🧊</div>
-
-            <p className="mt-6 text-xl font-semibold">
-              Produk Frozen Berkualitas
-            </p>
+            <Snowflake className="w-24 h-24" />
+            <p className="mt-6 text-xl font-semibold">Produk Frozen Berkualitas</p>
           </div>
 
           <h2 className="text-5xl font-bold text-center leading-tight max-w-3xl">
@@ -160,128 +272,191 @@ export default function Login({ onLogin }: LoginProps) {
           </div>
 
           <p className="mt-12 text-blue-200 text-sm">
-            © 2026 Nikky Frozen. All rights reserved.
+            Copyright 2026 Nikky Frozen. All rights reserved.
           </p>
         </div>
       </div>
 
-      {/* RIGHT SIDE */}
       <div className="bg-slate-100 flex items-center justify-center p-6">
         <div className="bg-white w-full max-w-xl rounded-[32px] shadow-xl p-10">
-          <h2 className="text-4xl font-bold text-slate-900">
-            Selamat Datang 👋
-          </h2>
+          {mode !== "login" && (
+            <button
+              type="button"
+              onClick={() => {
+                window.history.replaceState({}, "", window.location.pathname);
+                setMode("login");
+              }}
+              className="flex items-center gap-2 text-sm text-slate-500 hover:text-blue-600 mb-6"
+            >
+              <ArrowLeft size={16} />
+              Kembali ke login
+            </button>
+          )}
 
-          <p className="text-slate-500 mt-2">
-            Pilih peran dan masuk ke sistem POS
-          </p>
+          <h2 className="text-4xl font-bold text-slate-900">{title}</h2>
 
-          <div className="mt-8">
-            <p className="font-semibold text-sm text-slate-500 mb-4">
-              LOGIN SEBAGAI
-            </p>
+          <p className="text-slate-500 mt-2">{description}</p>
 
-            <div className="grid grid-cols-2 gap-4">
-              {roles.map((role) => {
-                const Icon = role.icon;
-                const active = selectedRole === role.name;
+          {mode === "login" && (
+            <div className="mt-8">
+              <p className="font-semibold text-sm text-slate-500 mb-4">
+                LOGIN SEBAGAI
+              </p>
 
-                return (
-                  <button
-                    key={role.name}
-                    type="button"
-                    onClick={() => setSelectedRole(role.name)}
-                    className={`rounded-2xl border p-4 text-left transition-all ${
-                      active
-                        ? "border-blue-600 bg-blue-50"
-                        : "border-slate-200 hover:border-blue-300"
-                    }`}
-                  >
-                    <div className="flex gap-3">
-                      <Icon
-                        size={18}
-                        className={active ? "text-blue-600" : "text-slate-400"}
-                      />
+              <div className="grid grid-cols-2 gap-4">
+                {roles.map((role) => {
+                  const Icon = role.icon;
+                  const active = selectedRole === role.name;
 
-                      <div>
-                        <h3
-                          className={`font-semibold ${
-                            active ? "text-blue-600" : "text-slate-700"
-                          }`}
-                        >
-                          {role.name}
-                        </h3>
+                  return (
+                    <button
+                      key={role.name}
+                      type="button"
+                      onClick={() => setSelectedRole(role.name)}
+                      className={`rounded-2xl border p-4 text-left transition-all ${
+                        active
+                          ? "border-blue-600 bg-blue-50"
+                          : "border-slate-200 hover:border-blue-300"
+                      }`}
+                    >
+                      <div className="flex gap-3">
+                        <Icon
+                          size={18}
+                          className={active ? "text-blue-600" : "text-slate-400"}
+                        />
 
-                        <p className="text-sm text-slate-500">{role.desc}</p>
+                        <div>
+                          <h3
+                            className={`font-semibold ${
+                              active ? "text-blue-600" : "text-slate-700"
+                            }`}
+                          >
+                            {role.name}
+                          </h3>
+
+                          <p className="text-sm text-slate-500">{role.desc}</p>
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                );
-              })}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="mt-8">
             <label className="block text-sm font-semibold text-slate-600 mb-2">
               EMAIL
             </label>
 
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="owner@nikkyfrozen.com"
-              className="w-full h-14 px-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <div className="relative">
+              <Mail className="absolute left-4 top-4 text-slate-400" size={20} />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={mode === "reset" && Boolean(resetEmail)}
+                placeholder="owner@nikkyfrozen.com"
+                className="w-full h-14 pl-12 pr-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100"
+              />
+            </div>
           </div>
 
-          <div className="mt-6">
-            <div className="flex justify-between mb-2">
-              <label className="text-sm font-semibold text-slate-600">
-                PASSWORD
+          {mode !== "forgot" && (
+            <div className="mt-6">
+              <div className="flex justify-between mb-2">
+                <label className="text-sm font-semibold text-slate-600">
+                  {mode === "reset" ? "PASSWORD BARU" : "PASSWORD"}
+                </label>
+
+                {mode === "login" && (
+                  <button
+                    type="button"
+                    onClick={() => setMode("forgot")}
+                    className="text-blue-600 text-sm hover:text-blue-700"
+                  >
+                    Lupa password?
+                  </button>
+                )}
+              </div>
+
+              <div className="relative">
+                <LockKeyhole className="absolute left-4 top-4 text-slate-400" size={20} />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={mode === "reset" ? "Minimal 6 karakter" : "123456"}
+                  className="w-full h-14 pl-12 pr-12 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+
+                <button
+                  type="button"
+                  className="absolute right-4 top-4 text-slate-500"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {mode === "reset" && (
+            <div className="mt-6">
+              <label className="block text-sm font-semibold text-slate-600 mb-2">
+                KONFIRMASI PASSWORD
               </label>
 
-              <button type="button" className="text-blue-600 text-sm">
-                Lupa password?
-              </button>
+              <div className="relative">
+                <KeyRound className="absolute left-4 top-4 text-slate-400" size={20} />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Ulangi password baru"
+                  className="w-full h-14 pl-12 pr-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
-
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="123456"
-                className="w-full h-14 px-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-
-              <button
-                type="button"
-                className="absolute right-4 top-4 text-slate-500"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-          </div>
+          )}
 
           <button
             type="button"
-            onClick={handleLogin}
+            onClick={
+              mode === "forgot"
+                ? handleForgotPassword
+                : mode === "reset"
+                  ? handleResetPassword
+                  : handleLogin
+            }
             disabled={loading}
             className="w-full mt-8 h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg transition disabled:bg-gray-400"
           >
-            {loading ? "Memproses..." : "Masuk ke Sistem"}
+            {loading
+              ? "Memproses..."
+              : mode === "forgot"
+                ? "Kirim Link Reset"
+                : mode === "reset"
+                  ? "Simpan Password Baru"
+                  : "Masuk ke Sistem"}
           </button>
 
-          <p className="text-center text-sm text-slate-400 mt-6">
-            Dengan masuk, Anda menyetujui
-            <span className="text-blue-600"> Syarat & Ketentuan </span>
-            Nikky Frozen
-          </p>
+          {mode === "forgot" && (
+            <p className="text-center text-sm text-slate-400 mt-6">
+              Pada mode lokal, link reset juga akan muncul di popup setelah dikirim.
+            </p>
+          )}
+
+          {mode === "login" && (
+            <p className="text-center text-sm text-slate-400 mt-6">
+              Dengan masuk, Anda menyetujui
+              <span className="text-blue-600"> Syarat & Ketentuan </span>
+              Nikky Frozen
+            </p>
+          )}
 
           <p className="text-center text-sm text-slate-400 mt-8">
-            Nikky Frozen POS v2.4.1 • © 2026
+            Nikky Frozen POS v2.4.1 - Copyright 2026
           </p>
         </div>
       </div>
