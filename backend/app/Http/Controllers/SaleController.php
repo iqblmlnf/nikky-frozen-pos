@@ -99,16 +99,27 @@ class SaleController extends Controller
     public function index(Request $request)
     {
         $query = Sale::with([
-            'user',
-            'branch',
-            'items.product'
-        ]);
+            'user:id,name',
+            'branch:id,name',
+        ])
+            ->withSum('items as items_qty', 'qty')
+            ->select([
+                'id',
+                'invoice_number',
+                'user_id',
+                'branch_id',
+                'total',
+                'payment_method',
+                'payment_status',
+                'created_at',
+            ]);
 
         if ($request->branch_id) {
-            $query->where(
-                'branch_id',
-                $request->branch_id
-            );
+            $query->where('branch_id', $request->branch_id);
+        }
+
+        if ($request->limit) {
+            $query->limit((int) $request->limit);
         }
 
         return $query
@@ -116,3 +127,4 @@ class SaleController extends Controller
             ->get();
     }
 }
+

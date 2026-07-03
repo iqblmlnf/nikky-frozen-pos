@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { api } from "../../lib/api";
 import { Eye, Printer, Search, X } from "lucide-react";
 import { generateReceiptPDF } from "../../utils/receiptPdf";
@@ -194,10 +194,7 @@ export default function TransactionPage() {
 
                   {/* ITEM */}
                   <td className="px-6 py-4 text-center">
-                    {sale.items?.reduce(
-                      (total: number, item: any) => total + item.qty,
-                      0,
-                    ) ?? 0}
+                    {sale.items_qty ?? 0}
                   </td>
 
                   {/* TOTAL */}
@@ -330,3 +327,4 @@ export default function TransactionPage() {
     </div>
   );
 }
+

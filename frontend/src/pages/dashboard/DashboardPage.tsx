@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "../../lib/api";
+import { Package, Repeat2, Truck } from "lucide-react";
 
 import { daysFromNow } from "../../utils/date";
 import { fmt } from "../../utils/currency";
@@ -26,116 +27,40 @@ export function DashboardPage() {
   const [period, setPeriod] = useState(7);
   const [categoryData, setCategoryData] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
+  const [summary, setSummary] = useState<any>({
+    totalProducts: 0,
+    totalStocks: 0,
+    lowStockCount: 0,
+    expiringCount: 0,
+    todayRevenue: 0,
+    totalRevenue: 0,
+    totalTransfers: 0,
+    todayTransfers: 0,
+  });
 
   const loadDashboard = async () => {
     try {
-      let salesUrl = "/sales";
-
-      let branchPerformanceUrl =
-        "/branches/performance";
+      const params: any = {
+        period,
+      };
 
       if (user.role !== "owner") {
-        salesUrl += `?branch_id=${user.branch_id}`;
-        branchPerformanceUrl += `?branch_id=${user.branch_id}`;
+        params.branch_id = user.branch_id;
       }
 
-      const [
-        productsRes,
-        usersRes,
-        salesRes,
-        branchesRes,
-        stocksRes,
-        transfersRes,
-      ] = await Promise.all([
-        api.get("/products"),
-        api.get("/users"),
-        api.get(salesUrl),
-        api.get(branchPerformanceUrl),
-        api.get("/stocks"),
-        api.get("/stock-transfer-history"),
-      ]);
-
-      const productsData = productsRes.data;
-      const usersData = usersRes.data;
-      const salesData = salesRes.data;
-
-      setProducts(productsData);
-      setUsers(usersData);
-      setSales(salesData);
-      setBranches(branchesRes.data);
-      setStocks(stocksRes.data);
-      setTransfers(transfersRes.data);
-
-      // ==========================
-      // REVENUE CHART REALTIME
-      // ==========================
-
-      const revenueData = [];
-
-      for (let i = period - 1; i >= 0; i--) {
-        const currentDate = new Date();
-
-        currentDate.setDate(currentDate.getDate() - i);
-
-        const salesOfDay = salesData.filter(
-          (sale: any) =>
-            new Date(sale.created_at).toDateString() ===
-            currentDate.toDateString(),
-        );
-
-        revenueData.push({
-          day: currentDate.toLocaleDateString("id-ID", {
-            day: "2-digit",
-            month: "short",
-          }),
-
-          revenue: salesOfDay.reduce(
-            (total: number, sale: any) => total + Number(sale.total),
-            0,
-          ),
-
-          orders: salesOfDay.length,
-        });
-      }
-
-      setChartData(revenueData);
-
-      // ==========================
-      // CATEGORY CHART REALTIME
-      // ==========================
-
-      const categoryCount: Record<string, number> = {};
-
-      productsData.forEach((product: any) => {
-        const category = product.category || "Lainnya";
-
-        categoryCount[category] = (categoryCount[category] || 0) + 1;
+      const res = await api.get("/dashboard/summary", {
+        params,
       });
 
-      const colors = [
-        "#1565C0",
-        "#06B6D4",
-        "#3B82F6",
-        "#0EA5E9",
-        "#7DD3FC",
-        "#F59E0B",
-        "#10B981",
-      ];
-
-      const totalProducts = productsData.length;
-
-      const categoryChart = Object.entries(categoryCount).map(
-        ([name, count], index) => ({
-          name,
-          value:
-            totalProducts > 0
-              ? Math.round((Number(count) / totalProducts) * 100)
-              : 0,
-          color: colors[index % colors.length],
-        }),
-      );
-
-      setCategoryData(categoryChart);
+      setSummary(res.data);
+      setProducts(res.data.expiringProducts || []);
+      setUsers([]);
+      setSales([]);
+      setBranches(res.data.branches || []);
+      setStocks([]);
+      setTransfers(res.data.transfers || []);
+      setChartData(res.data.chartData || []);
+      setCategoryData(res.data.categoryData || []);
     } catch (error) {
       console.error(error);
     }
@@ -149,51 +74,14 @@ export function DashboardPage() {
   // KADALUARSA
   // ==========================
 
-  const expiringProducts = products.filter(
-    (product) => daysFromNow(product.expiry) <= 7,
-  );
-
-  // ==========================
-  // STOK MENIPIS
-  // ==========================
-
-  const lowStockProducts = stocks.filter((item) => Number(item.stock) <= 10);
-
-  // ==========================
-  // STATISTIK
-  // ==========================
-
-  const totalProducts = products.length;
-  const totalStocks = stocks.reduce((sum, item) => sum + Number(item.stock), 0);
-
-  const totalTransfers = transfers.length;
-
-  const todayTransfers = transfers.filter(
-    (item) =>
-      new Date(item.created_at).toDateString() === new Date().toDateString(),
-  ).length;
-
-  const todayRevenue = sales
-    .filter(
-      (sale) =>
-        new Date(sale.created_at).toDateString() === new Date().toDateString(),
-    )
-    .reduce((sum, sale) => sum + Number(sale.total), 0);
-
-  const filteredSales = sales.filter((sale) => {
-    const saleDate = new Date(sale.created_at);
-
-    const limitDate = new Date();
-
-    limitDate.setDate(limitDate.getDate() - period);
-
-    return saleDate >= limitDate;
-  });
-
-  const totalRevenue = filteredSales.reduce(
-    (sum, sale) => sum + Number(sale.total),
-    0,
-  );
+  const expiringProducts = products;
+  const totalProducts = summary.totalProducts || 0;
+  const totalStocks = summary.totalStocks || 0;
+  const totalTransfers = summary.totalTransfers || 0;
+  const todayTransfers = summary.todayTransfers || 0;
+  const todayRevenue = Number(summary.todayRevenue || 0);
+  const totalRevenue = Number(summary.totalRevenue || 0);
+  const lowStockCount = summary.lowStockCount || 0;
 
   return (
     <div className="p-4 lg:p-6 space-y-5">
@@ -203,8 +91,8 @@ export function DashboardPage() {
       {/* STATS */}
       <DashboardStats
         totalProducts={totalProducts}
-        expiringCount={expiringProducts.length}
-        lowStockCount={lowStockProducts.length}
+        expiringCount={summary.expiringCount || expiringProducts.length}
+        lowStockCount={lowStockCount}
         todayRevenue={todayRevenue}
       />
 
@@ -224,9 +112,7 @@ export function DashboardPage() {
               </p>
             </div>
 
-            <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center">
-              📦
-            </div>
+            <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600"><Package className="w-6 h-6" /></div>
           </div>
         </div>
 
@@ -244,9 +130,7 @@ export function DashboardPage() {
               </p>
             </div>
 
-            <div className="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center">
-              🔄
-            </div>
+            <div className="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600"><Repeat2 className="w-6 h-6" /></div>
           </div>
         </div>
 
@@ -262,9 +146,7 @@ export function DashboardPage() {
               <p className="text-xs text-gray-400 mt-1">Aktivitas hari ini</p>
             </div>
 
-            <div className="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center">
-              🚚
-            </div>
+            <div className="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center text-green-600"><Truck className="w-6 h-6" /></div>
           </div>
         </div>
       </div>
@@ -327,7 +209,7 @@ export function DashboardPage() {
 
                     <p className="text-xs text-gray-500">
                       {item.from_branch?.name}
-                      {" → "}
+                      {" -> "}
                       {item.to_branch?.name}
                     </p>
                   </div>
@@ -354,3 +236,4 @@ export function DashboardPage() {
     </div>
   );
 }
+

@@ -28,6 +28,17 @@ class ProductController extends Controller
         return $query->get();
     }
 
+    public function expiring()
+    {
+        return Product::query()
+            ->select('id', 'sku', 'name', 'image', 'expiry')
+            ->whereNotNull('expiry')
+            ->whereDate('expiry', '<=', now()->addDays(7))
+            ->orderBy('expiry')
+            ->limit(20)
+            ->get();
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -161,3 +172,4 @@ class ProductController extends Controller
         ]);
     }
 }
+

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { api } from "../../lib/api";
 
 import { Bell, Menu } from "lucide-react";
@@ -19,21 +19,9 @@ export function Header({ page, onMenuClick }: HeaderProps) {
 
   const loadNotifications = async () => {
     try {
-      const res = await api.get("/products");
+      const res = await api.get("/products-expiring");
 
-      const warningProducts = res.data.filter((product: any) => {
-        const today = new Date();
-
-        const expiry = new Date(product.expiry);
-
-        const diff = Math.ceil(
-          (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-        );
-
-        return diff >= 0 && diff <= 7;
-      });
-
-      setNotifications(warningProducts);
+      setNotifications(res.data);
     } catch (error) {
       console.error(error);
     }
@@ -110,3 +98,4 @@ export function Header({ page, onMenuClick }: HeaderProps) {
     </header>
   );
 }
+

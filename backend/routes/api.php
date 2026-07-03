@@ -11,9 +11,12 @@ use App\Http\Controllers\ProductStockController;
 use App\Http\Controllers\TransferStockController;
 use App\Http\Controllers\Api\MidtransController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\DashboardController;
 
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/dashboard/summary', [DashboardController::class, 'summary']);
+Route::get('/products-expiring', [ProductController::class, 'expiring']);
 Route::apiResource('products', ProductController::class);
 Route::apiResource('users', UserController::class);
 Route::apiResource('sales', SaleController::class);
@@ -24,7 +27,8 @@ Route::apiResource('branches', BranchController::class);
 Route::apiResource('stocks', ProductStockController::class);
 Route::post('/stock-transfer', [TransferStockController::class, 'store']);
 Route::get('/stock-transfer', [TransferStockController::class, 'index']);
-Route::post('/stock-transfer', [TransferStockController::class, 'store']);
 Route::get('/stock-transfer-history', [TransferStockController::class, 'history']);
 Route::post('/midtrans/create-transaction', [MidtransController::class, 'createTransaction']);
 Route::apiResource('expenses', ExpenseController::class);
+
+

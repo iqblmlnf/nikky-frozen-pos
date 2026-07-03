@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { api } from "../../lib/api";
 
 import {
@@ -156,11 +156,7 @@ export function FinancePage() {
 
     branch: sale.branch?.name ?? "-",
 
-    items:
-      sale.items?.reduce(
-        (sum: number, item: any) => sum + Number(item.qty),
-        0,
-      ) ?? 0,
+    items: Number(sale.items_qty ?? 0),
 
     payment: sale.payment_method ?? "-",
 
@@ -184,3 +180,4 @@ export function FinancePage() {
     </div>
   );
 }
+
