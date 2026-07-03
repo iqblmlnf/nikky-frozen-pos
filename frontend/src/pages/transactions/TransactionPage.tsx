@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../lib/api";
 import { Eye, Printer, Search, X } from "lucide-react";
 import { generateReceiptPDF } from "../../utils/receiptPdf";
 import { Download } from "lucide-react";
@@ -30,15 +30,15 @@ export default function TransactionPage() {
 
   const loadSales = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const user = JSON.parse(sessionStorage.getItem("user") || "{}");
 
-      let url = "http://localhost:8000/api/sales";
+      let url = "/sales";
 
       if (user.role !== "owner") {
         url += `?branch_id=${user.branch_id}`;
       }
 
-      const res = await axios.get(url);
+      const res = await api.get(url);
 
       setSales(res.data);
     } catch (error) {
@@ -48,7 +48,7 @@ export default function TransactionPage() {
 
   const handleDetail = async (id: number) => {
     try {
-      const res = await axios.get(`http://localhost:8000/api/sales/${id}`);
+      const res = await api.get(`/sales/${id}`);
 
       setSelectedSale(res.data);
     } catch (error) {

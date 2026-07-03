@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Swal from "sweetalert2";
-import axios from "axios";
+import { api } from "../../lib/api";
 
 export default function SyncButton() {
   const [loading, setLoading] = useState(false);
@@ -18,7 +18,7 @@ export default function SyncButton() {
 
     try {
       for (const sale of queue) {
-        await axios.post("http://localhost:8000/api/sales", sale);
+        await api.post("/sales", sale);
       }
 
       localStorage.removeItem("offline_sales");

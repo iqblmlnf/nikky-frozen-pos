@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../lib/api";
 import Swal from "sweetalert2";
 
 import {
@@ -25,7 +25,7 @@ export default function UsersPage() {
 
     if (!result.isConfirmed) return;
 
-    await axios.delete(`http://localhost:8000/api/users/${user.id}`);
+    await api.delete(`/users/${user.id}`);
 
     Swal.fire({
       icon: "success",
@@ -37,7 +37,7 @@ export default function UsersPage() {
   };
   const loadUsers = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/users");
+      const res = await api.get("/users");
 
       setUsers(res.data);
     } catch (error) {

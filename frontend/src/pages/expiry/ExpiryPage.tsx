@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../lib/api";
 
 import { daysFromNow } from "../../utils/date";
 
@@ -9,15 +9,26 @@ import {
 } from "../../components/expiry";
 
 export default function ExpiryPage() {
+  // 1. Ambil data user yang sedang login dari sessionStorage
+  const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+
   const [products, setProducts] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("Semua");
 
+  // 2. Modifikasi loadProducts agar mengirimkan params branch_id jika bukan owner
   const loadProducts = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:8000/api/products"
-      );
+      const params =
+        user.role === "owner"
+          ? {}
+          : {
+              branch_id: user.branch_id,
+            };
+
+      const res = await api.get("/products", {
+        params, // Kirim parameter ke backend Laravel bray
+      });
 
       setProducts(res.data);
     } catch (error) {
@@ -75,6 +86,13 @@ export default function ExpiryPage() {
 
   return (
     <div className="p-4 lg:p-6 space-y-5">
+      {/* Opsional: Penanda nama cabang di atas dashboard biar makin mantap */}
+      {user.role !== "owner" && user.branch?.name && (
+        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-xl text-sm font-semibold inline-block">
+          Cabang: {user.branch.name}
+        </div>
+      )}
+
       <ExpiryStats
         expired={expired.length}
         today={todayExp.length}

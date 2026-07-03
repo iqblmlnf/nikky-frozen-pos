@@ -1,3 +1,4 @@
+import { storageUrl } from "../../lib/api";
 import { Plus } from "lucide-react";
 
 import type { Product } from "../../types/product";
@@ -14,7 +15,7 @@ export default function ProductCard({ product, onAdd }: Props) {
       <div className="h-32 rounded-2xl overflow-hidden bg-gray-100">
         {product.image ? (
           <img
-            src={`http://localhost:8000/storage/${product.image}`}
+            src={storageUrl(product.image)}
             alt={product.name}
             className="w-full h-full object-cover"
           />

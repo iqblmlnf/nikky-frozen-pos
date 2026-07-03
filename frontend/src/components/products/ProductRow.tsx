@@ -1,3 +1,4 @@
+import { storageUrl } from "../../lib/api";
 import { Edit2, Trash2 } from "lucide-react";
 
 import { Badge } from "../ui";
@@ -41,7 +42,7 @@ export default function ProductRow({ product, onEdit, onDelete }: Props) {
           <img
             src={
               product.image
-                ? `http://localhost:8000/storage/${product.image}`
+                ? storageUrl(product.image)
                 : "https://placehold.co/100x100"
             }
             alt={product.name}

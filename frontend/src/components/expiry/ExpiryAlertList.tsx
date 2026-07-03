@@ -1,3 +1,4 @@
+import { storageUrl } from "../../lib/api";
 import {
   CheckCircle,
   Download,
@@ -88,7 +89,7 @@ export default function ExpiryAlertList({
               />
 
               <img
-                src={`http://localhost:8000/storage/${p.image}`}
+                src={storageUrl(p.image)}
                 alt={p.name}
                 className="w-12 h-12 rounded-xl object-cover border"
               />

@@ -1,3 +1,4 @@
+import { storageUrl } from "../../lib/api";
 interface StockItem {
   id: number;
   stock: number;
@@ -63,7 +64,7 @@ export default function StockTable({
               <img
                 src={
                   item.product.image
-                    ? `http://localhost:8000/storage/${item.product.image}`
+                    ? storageUrl(item.product.image)
                     : "https://placehold.co/100x100"
                 }
                 alt={item.product.name}

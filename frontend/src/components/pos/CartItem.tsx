@@ -1,3 +1,4 @@
+import { storageUrl } from "../../lib/api";
 import { Minus, Plus, Trash2 } from "lucide-react";
 
 import type { CartItem as CartItemType } from "../../pages/pos/POSPage";
@@ -36,7 +37,7 @@ export default function CartItem({
         <img
           src={
             item.image
-              ? `http://localhost:8000/storage/${item.image}`
+              ? storageUrl(item.image)
               : "https://placehold.co/100x100"
           }
           alt={item.name}

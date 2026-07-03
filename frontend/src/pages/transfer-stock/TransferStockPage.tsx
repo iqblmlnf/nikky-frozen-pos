@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../lib/api";
 import Swal from "sweetalert2";
 
 export default function TransferStockPage() {
@@ -19,9 +19,9 @@ export default function TransferStockPage() {
   const loadData = async () => {
     try {
       const [productsRes, branchesRes, historyRes] = await Promise.all([
-        axios.get("http://localhost:8000/api/products"),
-        axios.get("http://localhost:8000/api/branches"),
-        axios.get("http://localhost:8000/api/stock-transfer-history"),
+        api.get("/products"),
+        api.get("/branches"),
+        api.get("/stock-transfer-history"),
       ]);
 
       setProducts(productsRes.data);
@@ -34,9 +34,9 @@ export default function TransferStockPage() {
 
   const handleTransfer = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const user = JSON.parse(sessionStorage.getItem("user") || "{}");
 
-      await axios.post("http://localhost:8000/api/stock-transfer", {
+      await api.post("/stock-transfer", {
         product_id: productId,
         from_branch_id: fromBranch,
         to_branch_id: toBranch,

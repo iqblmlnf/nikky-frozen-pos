@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../lib/api";
 
 import ProductToolbar from "../../components/products/ProductToolbar";
 import ProductTable from "../../components/products/ProductTable";
@@ -16,11 +16,11 @@ export function ProductPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const loadProducts = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const user = JSON.parse(sessionStorage.getItem("user") || "{}");
 
       const params = user.role === "owner" ? {} : { branch_id: user.branch_id };
 
-      const res = await axios.get("http://localhost:8000/api/products", {
+      const res = await api.get("/products", {
         params,
       });
 
@@ -47,9 +47,9 @@ export function ProductPage() {
     if (!result.isConfirmed) return;
 
     try {
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const user = JSON.parse(sessionStorage.getItem("user") || "{}");
 
-      await axios.delete(`http://localhost:8000/api/products/${product.id}`, {
+      await api.delete(`/products/${product.id}`, {
         data: {
           user_id: user.id,
         },

@@ -11,12 +11,18 @@ class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        $credentials = $request->validate([
+        $validated = $request->validate([
             'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required',
+            'role' => 'required|in:owner,kasir,admin_gudang,admin_keuangan',
         ]);
 
-        if (!Auth::attempt($credentials)) {
+        $credentials = [
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+        ];
+
+        if (! Auth::attempt($credentials)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Email atau password salah'
@@ -24,6 +30,15 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
+
+        if ($user->role !== $validated['role']) {
+            Auth::logout();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Role login tidak sesuai dengan akun ini'
+            ], 403);
+        }
 
         AuditHelper::log(
             $user->id,

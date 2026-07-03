@@ -1,5 +1,3 @@
-// src/pages/pos/POSPage.tsx
-
 declare global {
   interface Window {
     snap: any;
@@ -7,7 +5,7 @@ declare global {
 }
 import { useEffect, useState } from "react";
 import { Wifi, WifiOff } from "lucide-react";
-import axios from "axios";
+import { api } from "../../lib/api";
 import Swal from "sweetalert2";
 import { saveOfflineSale } from "../../utils/offlineQueue";
 import SyncButton from "../../components/pos/SyncButton";
@@ -26,8 +24,7 @@ export interface CartItem extends Product {
 }
 
 export default function POSPage() {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-
+  const user = JSON.parse(sessionStorage.getItem("user") || "{}");
   const [products, setProducts] = useState<Product[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
   const [selectedBranch, setSelectedBranch] = useState("");
@@ -36,11 +33,10 @@ export default function POSPage() {
   const [category, setCategory] = useState("Semua");
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [isOnline, setIsOnline] = useState(true);
-
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
   const loadProducts = async (branchId?: string) => {
     try {
-      const res = await axios.get("http://localhost:8000/api/products", {
+      const res = await api.get("/products", {
         params: {
           branch_id: branchId,
         },
@@ -51,31 +47,22 @@ export default function POSPage() {
       console.error("Gagal load produk:", error);
     }
   };
-
-  const checkServer = async () => {
-    try {
-      await axios.get("http://localhost:8000/api/branches");
-
-      setIsOnline(true);
-    } catch {
-      setIsOnline(false);
-    }
-  };
-
   useEffect(() => {
-    checkServer();
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
-    const interval = setInterval(() => {
-      checkServer();
-    }, 5000);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
-    return () => clearInterval(interval);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
   }, []);
-
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const branchRes = await axios.get("http://localhost:8000/api/branches");
+        const branchRes = await api.get("/branches");
 
         setBranches(branchRes.data);
 
@@ -183,8 +170,8 @@ export default function POSPage() {
       // MIDTRANS
       // =========================
       if (paymentMethod === "Midtrans") {
-        const snapRes = await axios.post(
-          "http://localhost:8000/api/midtrans/create-transaction",
+        const snapRes = await api.post(
+          "/midtrans/create-transaction",
           {
             total: subtotal,
           },
@@ -192,11 +179,10 @@ export default function POSPage() {
 
         const snapToken = snapRes.data.token;
 
-        // @ts-ignore
         window.snap.pay(snapToken, {
           onSuccess: async () => {
             try {
-              await axios.post("http://localhost:8000/api/sales", {
+              await api.post("/sales", {
                 user_id: user.id,
                 branch_id:
                   user.role === "owner" ? selectedBranch : user.branch_id,
@@ -251,7 +237,7 @@ export default function POSPage() {
       // =========================
       // CASH / TRANSFER
       // =========================
-      await axios.post("http://localhost:8000/api/sales", {
+      await api.post("/sales", {
         user_id: user.id,
         branch_id: user.role === "owner" ? selectedBranch : user.branch_id,
 

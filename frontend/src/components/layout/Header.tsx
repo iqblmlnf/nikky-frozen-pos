@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../lib/api";
 
 import { Bell, Menu } from "lucide-react";
 
@@ -19,7 +19,7 @@ export function Header({ page, onMenuClick }: HeaderProps) {
 
   const loadNotifications = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/products");
+      const res = await api.get("/products");
 
       const warningProducts = res.data.filter((product: any) => {
         const today = new Date();

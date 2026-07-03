@@ -1,7 +1,7 @@
 // src/pages/dashboard/DashboardPage.tsx
 
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../lib/api";
 
 import { daysFromNow } from "../../utils/date";
 import { fmt } from "../../utils/currency";
@@ -18,7 +18,7 @@ import {
 export function DashboardPage() {
   const [stocks, setStocks] = useState<any[]>([]);
   const [transfers, setTransfers] = useState<any[]>([]);
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = JSON.parse(sessionStorage.getItem("user") || "{}");
   const [products, setProducts] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
@@ -29,10 +29,10 @@ export function DashboardPage() {
 
   const loadDashboard = async () => {
     try {
-      let salesUrl = "http://localhost:8000/api/sales";
+      let salesUrl = "/sales";
 
       let branchPerformanceUrl =
-        "http://localhost:8000/api/branches/performance";
+        "/branches/performance";
 
       if (user.role !== "owner") {
         salesUrl += `?branch_id=${user.branch_id}`;
@@ -47,12 +47,12 @@ export function DashboardPage() {
         stocksRes,
         transfersRes,
       ] = await Promise.all([
-        axios.get("http://localhost:8000/api/products"),
-        axios.get("http://localhost:8000/api/users"),
-        axios.get(salesUrl),
-        axios.get(branchPerformanceUrl),
-        axios.get("http://localhost:8000/api/stocks"),
-        axios.get("http://localhost:8000/api/stock-transfer-history"),
+        api.get("/products"),
+        api.get("/users"),
+        api.get(salesUrl),
+        api.get(branchPerformanceUrl),
+        api.get("/stocks"),
+        api.get("/stock-transfer-history"),
       ]);
 
       const productsData = productsRes.data;

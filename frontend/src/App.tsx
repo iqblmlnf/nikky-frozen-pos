@@ -1,5 +1,3 @@
-// src/app/App.tsx
-
 import { useState } from "react";
 
 import { Sidebar, Header } from "./components/layout";
@@ -21,14 +19,46 @@ import ExpensePage from "./pages/expenses/ExpensePage";
 import type { Page, Role } from "./types";
 
 export default function App() {
-  const [page, setPage] = useState<Page>("dashboard");
+  // PERBAIKAN 1: Gunakan sessionStorage agar data otomatis terhapus saat sesi baru / browser direstart
+  const [user, setUser] = useState(() => {
+    return JSON.parse(sessionStorage.getItem("user") || "null");
+  });
+
+  const getDefaultPage = (roleName: string): Page => {
+    switch (roleName?.toLowerCase()) {
+      case "kasir":
+        return "pos"; 
+      case "admin_gudang":
+        return "stock"; 
+      case "admin_keuangan":
+        return "finance"; 
+      case "owner":
+      default:
+        return "dashboard"; 
+    }
+  };
+
+  const [page, setPage] = useState<Page>(() => {
+    if (user && user.role) {
+      return getDefaultPage(user.role);
+    }
+    return "dashboard";
+  });
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+  // PERBAIKAN 2: Ganti fungsi reload dengan update state dinamis agar login langsung mengarah ke halaman yang benar
+  const handleLoginSuccess = () => {
+    const updatedUser = JSON.parse(sessionStorage.getItem("user") || "null");
+    if (updatedUser) {
+      setUser(updatedUser);
+      setPage(getDefaultPage(updatedUser.role));
+    }
+  };
 
+  // Jika belum login, tampilkan halaman Login
   if (!user) {
-    return <Login onLogin={() => window.location.reload()} />;
+    return <Login onLogin={handleLoginSuccess} />;
   }
 
   const role = (user.role || "owner") as Role;

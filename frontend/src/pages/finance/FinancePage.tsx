@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../lib/api";
 
 import {
   FinanceStats,
@@ -26,7 +26,7 @@ export function FinancePage() {
 
   const loadFinance = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const user = JSON.parse(sessionStorage.getItem("user") || "{}");
 
       const params =
         user.role === "owner"
@@ -35,11 +35,11 @@ export function FinancePage() {
               branch_id: user.branch_id,
             };
 
-      const salesRes = await axios.get("http://localhost:8000/api/sales", {
+      const salesRes = await api.get("/sales", {
         params,
       });
 
-      const expenseRes = await axios.get("http://localhost:8000/api/expenses", {
+      const expenseRes = await api.get("/expenses", {
         params,
       });
 

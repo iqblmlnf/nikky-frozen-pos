@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../lib/api";
 import Swal from "sweetalert2";
 import { X } from "lucide-react";
 
@@ -41,7 +41,7 @@ export default function BranchModal({
       }
 
       if (editing) {
-        await axios.put(`http://localhost:8000/api/branches/${editing.id}`, {
+        await api.put(`/branches/${editing.id}`, {
           name,
           address,
         });
@@ -52,7 +52,7 @@ export default function BranchModal({
           text: "Cabang berhasil diperbarui",
         });
       } else {
-        await axios.post("http://localhost:8000/api/branches", {
+        await api.post("/branches", {
           name,
           address,
         });

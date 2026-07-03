@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../lib/api";
 import Swal from "sweetalert2";
 import { Plus, Trash2 } from "lucide-react";
 
 export default function ExpensePage() {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-
+  const user = JSON.parse(sessionStorage.getItem("user") || "{}");
   const [expenses, setExpenses] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
 
@@ -17,7 +16,7 @@ export default function ExpensePage() {
 
   const loadExpenses = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/expenses");
+      const res = await api.get("/expenses");
 
       setExpenses(res.data);
     } catch (error) {
@@ -31,7 +30,7 @@ export default function ExpensePage() {
 
   const saveExpense = async () => {
     try {
-      await axios.post("http://localhost:8000/api/expenses", {
+      await api.post("/expenses", {
         category: form.category,
         amount: form.amount,
         description: form.description,
@@ -69,7 +68,7 @@ export default function ExpensePage() {
     if (!confirm.isConfirmed) return;
 
     try {
-      await axios.delete(`http://localhost:8000/api/expenses/${id}`);
+      await api.delete(`/expenses/${id}`);
 
       loadExpenses();
 

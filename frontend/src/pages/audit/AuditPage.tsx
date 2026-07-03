@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../lib/api";
 
 interface AuditLog {
   id: number;
@@ -18,7 +18,7 @@ export default function AuditPage() {
 
   const loadLogs = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/audit-logs");
+      const res = await api.get("/audit-logs");
 
       setLogs(res.data);
     } catch (error) {

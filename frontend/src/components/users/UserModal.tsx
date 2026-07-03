@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../lib/api";
 import Swal from "sweetalert2";
 import { X } from "lucide-react";
 
@@ -28,7 +28,7 @@ export default function UserModal({
   useEffect(() => {
     const loadBranches = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/api/branches");
+        const res = await api.get("/branches");
 
         setBranches(res.data);
       } catch (error) {
@@ -95,7 +95,7 @@ export default function UserModal({
       }
 
       if (editing) {
-        await axios.put(`http://localhost:8000/api/users/${editing.id}`, {
+        await api.put(`/users/${editing.id}`, {
           name,
           email,
           role,
@@ -108,7 +108,7 @@ export default function UserModal({
           text: "User berhasil diupdate",
         });
       } else {
-        await axios.post("http://localhost:8000/api/users", {
+        await api.post("/users", {
           name,
           email,
           password,

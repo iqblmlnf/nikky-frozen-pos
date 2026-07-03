@@ -30,7 +30,7 @@ export function Sidebar({
   currentUser,
 }: SidebarProps) {
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("user");
     window.location.reload();
   };
 

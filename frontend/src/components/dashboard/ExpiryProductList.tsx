@@ -1,3 +1,4 @@
+import { storageUrl } from "../../lib/api";
 import { cn } from "../../lib/cn";
 
 interface Product {
@@ -46,7 +47,7 @@ export function ExpiryProductList({
               )}
             >
               <img
-                src={`http://localhost:8000/storage/${product.image}`}
+                src={storageUrl(product.image)}
                 alt={product.name}
                 className="w-12 h-12 rounded-xl object-cover border border-gray-200"
               />

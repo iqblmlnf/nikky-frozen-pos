@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../lib/api";
 import Swal from "sweetalert2";
 
 import BranchTable from "../../components/branches/BranchTable";
@@ -12,7 +12,7 @@ export default function BranchPage() {
 
   const loadBranches = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/branches");
+      const res = await api.get("/branches");
 
       setBranches(res.data);
     } catch (error) {
@@ -37,7 +37,7 @@ export default function BranchPage() {
     if (!result.isConfirmed) return;
 
     try {
-      await axios.delete(`http://localhost:8000/api/branches/${branch.id}`);
+      await api.delete(`/branches/${branch.id}`);
 
       Swal.fire({
         icon: "success",

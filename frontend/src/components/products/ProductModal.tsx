@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api, storageUrl } from "../../lib/api";
 import { X, Upload, ImageIcon } from "lucide-react";
 import Swal from "sweetalert2";
 
@@ -37,6 +37,12 @@ export default function ProductModal({
   const [expiry, setExpiry] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
+  const currentUser = JSON.parse(sessionStorage.getItem("user") || "{}");
+  const isAdminGudang = currentUser.role === "admin_gudang";
+  const assignedBranchId = currentUser.branch_id ? String(currentUser.branch_id) : "";
+  const visibleBranches = isAdminGudang
+    ? branches.filter((branch) => String(branch.id) === assignedBranchId)
+    : branches;
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
@@ -48,12 +54,20 @@ export default function ProductModal({
 
   useEffect(() => {
     if (editing) {
+      const stockRecord = isAdminGudang
+        ? editing.stocks?.find((stock) => String(stock.branch_id) === assignedBranchId)
+        : editing.stocks?.[0];
+
       setName(editing.name);
       setSku(editing.sku);
       setCategory(editing.category);
       setPrice(String(editing.price));
-      setStock(String(editing.stocks?.[0]?.stock || ""));
-      setBranchId(String(editing.stocks?.[0]?.branch_id || ""));
+      setStock(String(stockRecord?.stock || ""));
+      setBranchId(
+        isAdminGudang
+          ? assignedBranchId
+          : String(stockRecord?.branch_id || ""),
+      );
 
       setExpiry(editing.expiry);
     } else {
@@ -62,15 +76,15 @@ export default function ProductModal({
       setCategory("");
       setPrice("");
       setStock("");
-      setBranchId("");
+      setBranchId(isAdminGudang ? assignedBranchId : "");
       setExpiry("");
       setImage(null);
     }
-  }, [editing, open]);
+  }, [assignedBranchId, editing, isAdminGudang, open]);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:8000/api/branches")
+    api
+      .get("/branches")
       .then((res) => setBranches(res.data))
       .catch(console.error);
   }, []);
@@ -126,7 +140,9 @@ export default function ProductModal({
       return;
     }
 
-    if (!branchId) {
+    const effectiveBranchId = isAdminGudang ? assignedBranchId : branchId;
+
+    if (!effectiveBranchId) {
       Swal.fire({
         icon: "warning",
         title: "Cabang Belum Dipilih",
@@ -157,7 +173,7 @@ export default function ProductModal({
     }
     try {
       if (editing) {
-        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        const user = JSON.parse(sessionStorage.getItem("user") || "{}");
 
         const formData = new FormData();
 
@@ -166,7 +182,7 @@ export default function ProductModal({
         formData.append("category", category);
         formData.append("price", price);
         formData.append("stock", stock);
-        formData.append("branch_id", branchId);
+        formData.append("branch_id", effectiveBranchId);
         formData.append("expiry", expiry);
         formData.append("user_id", String(user.id));
 
@@ -176,8 +192,8 @@ export default function ProductModal({
 
         formData.append("_method", "PUT");
 
-        await axios.post(
-          `http://localhost:8000/api/products/${editing.id}`,
+        await api.post(
+          `/products/${editing.id}`,
           formData,
           {
             headers: {
@@ -199,18 +215,18 @@ export default function ProductModal({
         formData.append("category", category);
         formData.append("price", price);
         formData.append("stock", stock);
-        formData.append("branch_id", branchId);
+        formData.append("branch_id", effectiveBranchId);
         formData.append("expiry", expiry);
 
         if (image) {
           formData.append("image", image);
         }
 
-        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        const user = JSON.parse(sessionStorage.getItem("user") || "{}");
 
         formData.append("user_id", String(user.id));
 
-        await axios.post("http://localhost:8000/api/products", formData, {
+        await api.post("/products", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -277,7 +293,7 @@ export default function ProductModal({
               />
             ) : editing?.image ? (
               <img
-                src={`http://localhost:8000/storage/${editing.image}`}
+                src={storageUrl(editing.image)}
                 alt={editing.name}
                 className="w-32 h-32 object-cover rounded-2xl mb-3"
               />
@@ -398,12 +414,17 @@ export default function ProductModal({
 
             <select
               value={branchId}
-              onChange={(e) => setBranchId(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50"
+              onChange={(e) => {
+                if (!isAdminGudang) {
+                  setBranchId(e.target.value);
+                }
+              }}
+              disabled={isAdminGudang}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 disabled:bg-gray-100 disabled:text-gray-500"
             >
               <option value="">Pilih Cabang</option>
 
-              {branches.map((branch) => (
+              {visibleBranches.map((branch) => (
                 <option key={branch.id} value={branch.id}>
                   {branch.name}
                 </option>

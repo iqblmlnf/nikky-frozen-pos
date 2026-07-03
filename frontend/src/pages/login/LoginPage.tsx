@@ -1,4 +1,4 @@
-import axios from "axios";
+import { api } from "../../lib/api";
 import { useState } from "react";
 import Swal from "sweetalert2";
 import {
@@ -26,37 +26,55 @@ export default function Login({ onLogin }: LoginProps) {
   const roles = [
     {
       name: "Owner",
+      value: "owner",
       desc: "Akses penuh",
       icon: Star,
     },
     {
       name: "Kasir",
+      value: "kasir",
       desc: "POS & Transaksi",
       icon: ShoppingCart,
     },
     {
       name: "Admin Gudang",
+      value: "admin_gudang",
       desc: "Stok & Produk",
       icon: Package,
     },
     {
       name: "Admin Keuangan",
+      value: "admin_keuangan",
       desc: "Laporan & Jurnal",
       icon: DollarSign,
     },
   ];
 
   const handleLogin = async () => {
+    const selectedRoleData = roles.find((role) => role.name === selectedRole);
+    const selectedRoleValue = selectedRoleData?.value || "admin_gudang";
+
     try {
       setLoading(true);
 
-      const response = await axios.post("http://localhost:8000/api/login", {
+      const response = await api.post("/login", {
         email,
         password,
+        role: selectedRoleValue,
       });
 
-      localStorage.setItem("user", JSON.stringify(response.data.user));
+      if (response.data.user.role !== selectedRoleValue) {
+        await Swal.fire({
+          icon: "error",
+          title: "Role Tidak Sesuai",
+          text: `Akun ini terdaftar sebagai ${response.data.user.role}, bukan ${selectedRole}.`, 
+        });
 
+        return;
+      }
+
+      // Ganti localStorage menjadi sessionStorage
+      sessionStorage.setItem("user", JSON.stringify(response.data.user));
       await Swal.fire({
         icon: "success",
         title: "Login Berhasil",
