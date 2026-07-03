@@ -1,10 +1,5 @@
-// src/components/ui/StatCard.tsx
-
 import React from "react";
-import {
-  TrendingUp,
-  TrendingDown,
-} from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 import { cn } from "../../lib/cn";
 
@@ -19,7 +14,10 @@ interface StatCardProps {
     | "cyan"
     | "green"
     | "amber"
-    | "red";
+    | "red"
+    | "violet"
+    | "rose"
+    | "emerald";
 
   trend?: {
     label: string;
@@ -35,21 +33,75 @@ export function StatCard({
   color = "blue",
   trend,
 }: StatCardProps) {
-  const bg: Record<string, string> = {
-    blue: "bg-blue-600",
-    cyan: "bg-cyan-500",
-    green: "bg-emerald-500",
-    amber: "bg-amber-500",
-    red: "bg-red-500",
+  const colors = {
+    blue: {
+      icon: "bg-blue-100 text-blue-600",
+      border: "bg-blue-500",
+    },
+
+    cyan: {
+      icon: "bg-cyan-100 text-cyan-600",
+      border: "bg-cyan-500",
+    },
+
+    green: {
+      icon: "bg-green-100 text-green-600",
+      border: "bg-green-500",
+    },
+
+    amber: {
+      icon: "bg-amber-100 text-amber-600",
+      border: "bg-amber-500",
+    },
+
+    red: {
+      icon: "bg-red-100 text-red-600",
+      border: "bg-red-500",
+    },
+
+    violet: {
+      icon: "bg-violet-100 text-violet-600",
+      border: "bg-violet-500",
+    },
+
+    rose: {
+      icon: "bg-rose-100 text-rose-600",
+      border: "bg-rose-500",
+    },
+
+    emerald: {
+      icon: "bg-emerald-100 text-emerald-600",
+      border: "bg-emerald-500",
+    },
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-all">
-      <div className="flex items-start justify-between mb-4">
+    <div
+      className="
+      relative
+      overflow-hidden
+      bg-white
+      rounded-3xl
+      border
+      border-slate-100
+      shadow-sm
+      hover:shadow-xl
+      hover:-translate-y-1
+      transition-all
+      duration-300
+      p-6
+    "
+    >
+      {/* TOP BORDER */}
+      <div
+        className={cn("absolute top-0 left-0 w-full h-1", colors[color].border)}
+      />
+
+      <div className="flex items-start justify-between mb-5">
         <div
           className={cn(
-            "p-2.5 rounded-xl text-white shadow-sm",
-            bg[color]
+            "w-14 h-14 rounded-2xl flex items-center justify-center",
+            colors[color].icon,
           )}
         >
           {icon}
@@ -58,10 +110,10 @@ export function StatCard({
         {trend && (
           <span
             className={cn(
-              "flex items-center gap-1 text-xs font-semibold",
+              "flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full",
               trend.up
-                ? "text-emerald-600"
-                : "text-red-500"
+                ? "bg-emerald-50 text-emerald-600"
+                : "bg-red-50 text-red-600",
             )}
           >
             {trend.up ? (
@@ -75,19 +127,13 @@ export function StatCard({
         )}
       </div>
 
-      <p className="text-2xl font-bold text-gray-900 mb-0.5">
+      <h3 className="text-4xl font-black tracking-tight text-slate-900">
         {value}
-      </p>
+      </h3>
 
-      <p className="text-sm text-gray-500 font-medium">
-        {title}
-      </p>
+      <p className="text-base font-semibold text-slate-700 mt-2">{title}</p>
 
-      {sub && (
-        <p className="text-xs text-gray-400 mt-1">
-          {sub}
-        </p>
-      )}
+      {sub && <p className="text-sm text-slate-400 mt-1">{sub}</p>}
     </div>
   );
 }
