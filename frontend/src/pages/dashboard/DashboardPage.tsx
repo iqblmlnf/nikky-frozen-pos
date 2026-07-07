@@ -7,6 +7,7 @@ import { Package, Repeat2, Truck } from "lucide-react";
 import { daysFromNow } from "../../utils/date";
 import { fmt } from "../../utils/currency";
 
+import { StatCard } from "../../components/ui";
 import {
   ExpiryAlertBanner,
   DashboardStats,
@@ -17,12 +18,9 @@ import {
 } from "../../components/dashboard";
 
 export function DashboardPage() {
-  const [stocks, setStocks] = useState<any[]>([]);
   const [transfers, setTransfers] = useState<any[]>([]);
   const user = JSON.parse(sessionStorage.getItem("user") || "{}");
   const [products, setProducts] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
-  const [sales, setSales] = useState<any[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
   const [period, setPeriod] = useState(7);
   const [categoryData, setCategoryData] = useState<any[]>([]);
@@ -54,10 +52,7 @@ export function DashboardPage() {
 
       setSummary(res.data);
       setProducts(res.data.expiringProducts || []);
-      setUsers([]);
-      setSales([]);
       setBranches(res.data.branches || []);
-      setStocks([]);
       setTransfers(res.data.transfers || []);
       setChartData(res.data.chartData || []);
       setCategoryData(res.data.categoryData || []);
@@ -98,57 +93,41 @@ export function DashboardPage() {
 
       {/* STOCK STATS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Total Stok</p>
+        <StatCard
+          title="Total Stok"
+          value={String(totalStocks)}
+          sub="Seluruh stok semua cabang"
+          icon={<Package className="w-5 h-5" />}
+          color="blue"
+          trend={{
+            label: "Semua Cabang",
+            up: true,
+          }}
+        />
 
-              <h2 className="text-4xl font-bold text-blue-600 mt-2">
-                {totalStocks}
-              </h2>
+        <StatCard
+          title="Transfer Stok"
+          value={String(totalTransfers)}
+          sub="Total transfer tercatat"
+          icon={<Repeat2 className="w-5 h-5" />}
+          color="violet"
+          trend={{
+            label: "Log",
+            up: true,
+          }}
+        />
 
-              <p className="text-xs text-gray-400 mt-1">
-                Seluruh stok semua cabang
-              </p>
-            </div>
-
-            <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600"><Package className="w-6 h-6" /></div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Transfer Stok</p>
-
-              <h2 className="text-4xl font-bold text-purple-600 mt-2">
-                {totalTransfers}
-              </h2>
-
-              <p className="text-xs text-gray-400 mt-1">
-                Total transfer tercatat
-              </p>
-            </div>
-
-            <div className="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600"><Repeat2 className="w-6 h-6" /></div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Transfer Hari Ini</p>
-
-              <h2 className="text-4xl font-bold text-green-600 mt-2">
-                {todayTransfers}
-              </h2>
-
-              <p className="text-xs text-gray-400 mt-1">Aktivitas hari ini</p>
-            </div>
-
-            <div className="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center text-green-600"><Truck className="w-6 h-6" /></div>
-          </div>
-        </div>
+        <StatCard
+          title="Transfer Hari Ini"
+          value={String(todayTransfers)}
+          sub="Aktivitas hari ini"
+          icon={<Truck className="w-5 h-5" />}
+          color="green"
+          trend={{
+            label: "Hari Ini",
+            up: true,
+          }}
+        />
       </div>
 
       {/* CHART */}

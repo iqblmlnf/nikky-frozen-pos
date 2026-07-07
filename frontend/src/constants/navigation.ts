@@ -10,7 +10,6 @@ import {
   Package2,
   BarChart2,
   Users,
-  Wifi,
   Receipt,
   ClipboardList,
   Building2,
@@ -40,7 +39,7 @@ export const NAV_ITEMS: NavItem[] = [
     id: "pos",
     label: "Kasir / POS",
     icon: ShoppingCart,
-    roles: ["owner", "kasir"],
+    roles: ["kasir"],
   },
 
   {

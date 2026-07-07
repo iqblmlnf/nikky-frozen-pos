@@ -13,8 +13,6 @@ export default function ExpiryPage() {
   const user = JSON.parse(sessionStorage.getItem("user") || "{}");
 
   const [products, setProducts] = useState<any[]>([]);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("Semua");
 
   // 2. Modifikasi loadProducts agar mengirimkan params branch_id jika bukan owner
   const loadProducts = async () => {
@@ -65,24 +63,6 @@ export default function ExpiryPage() {
         daysFromNow(a.expiry) -
         daysFromNow(b.expiry)
     );
-
-  const filtered = products.filter((product) => {
-    const days = daysFromNow(product.expiry);
-
-    const matchesSearch = product.name
-      .toLowerCase()
-      .includes(search.toLowerCase());
-
-    const matchesStatus =
-      status === "Semua" ||
-      (status === "Expired" && days < 0) ||
-      (status === "Hampir Expired" &&
-        days >= 0 &&
-        days <= 7) ||
-      (status === "Aman" && days > 7);
-
-    return matchesSearch && matchesStatus;
-  });
 
   return (
     <div className="p-4 lg:p-6 space-y-5">

@@ -1,10 +1,7 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../../lib/api";
-
 import { Bell, Menu } from "lucide-react";
-
 import { PAGE_TITLES } from "../../constants/pageTitles";
-
 import type { Page } from "../../types";
 
 interface HeaderProps {
@@ -13,14 +10,31 @@ interface HeaderProps {
 }
 
 export function Header({ page, onMenuClick }: HeaderProps) {
+  const user = JSON.parse(sessionStorage.getItem("user") || "{}");
   const [showNotif, setShowNotif] = useState(false);
-
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [branchName, setBranchName] = useState<string>("");
+
+  useEffect(() => {
+    if (user.role !== "owner" && user.branch_id) {
+      if (user.branch?.name) {
+        setBranchName(user.branch.name);
+      } else {
+        api.get("/branches").then((res) => {
+          const activeBranch = res.data.find(
+            (b: any) => String(b.id) === String(user.branch_id)
+          );
+          if (activeBranch) {
+            setBranchName(activeBranch.name);
+          }
+        }).catch(console.error);
+      }
+    }
+  }, [user.branch_id, user.branch?.name]);
 
   const loadNotifications = async () => {
     try {
       const res = await api.get("/products-expiring");
-
       setNotifications(res.data);
     } catch (error) {
       console.error(error);
@@ -40,10 +54,20 @@ export function Header({ page, onMenuClick }: HeaderProps) {
         <Menu className="w-5 h-5" />
       </button>
 
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 flex items-center gap-3">
         <h1 className="text-lg font-bold text-gray-900 truncate">
           {PAGE_TITLES[page]}
         </h1>
+
+        {user.role === "owner" ? (
+          <span className="px-2.5 py-1 rounded-full bg-purple-50 border border-purple-100 text-purple-700 text-xs font-bold whitespace-nowrap shadow-sm">
+            👑 Pusat / Semua Cabang
+          </span>
+        ) : branchName ? (
+          <span className="px-2.5 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold whitespace-nowrap shadow-sm">
+            📍 Cabang: {branchName}
+          </span>
+        ) : null}
       </div>
 
       <div className="relative">
@@ -98,4 +122,3 @@ export function Header({ page, onMenuClick }: HeaderProps) {
     </header>
   );
 }
-

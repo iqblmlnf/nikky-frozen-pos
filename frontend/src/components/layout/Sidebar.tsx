@@ -73,7 +73,7 @@ export function Sidebar({
                   onClose();
                 }}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left",
+                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left transform duration-200 hover:scale-[1.02] active:scale-[0.98]",
                   active
                     ? "bg-blue-600 text-white shadow-sm shadow-blue-300/50"
                     : "text-gray-600 hover:bg-blue-50 hover:text-blue-700",

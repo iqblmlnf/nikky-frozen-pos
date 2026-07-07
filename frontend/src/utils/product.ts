@@ -7,7 +7,7 @@ export const getLowStockProducts = (
   products: Product[]
 ) =>
   products.filter(
-    p => p.stock <= 10
+    p => (p.stocks?.reduce((sum: number, item: any) => sum + Number(item.stock), 0) ?? 0) <= 10
   );
 
 export const getExpiringProducts = (

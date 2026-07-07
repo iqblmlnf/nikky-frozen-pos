@@ -5,6 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 
 export default function ExpensePage() {
   const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+  const isOwner = user.role === "owner";
   const [expenses, setExpenses] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
 
@@ -83,21 +84,32 @@ export default function ExpensePage() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Pengeluaran Operasional</h1>
 
-        <button
-          onClick={() => setOpen(true)}
-          className="
-            flex items-center gap-2
-            px-4 py-2
-            bg-red-500
-            hover:bg-red-600
-            text-white
-            rounded-xl
-          "
-        >
-          <Plus className="w-4 h-4" />
-          Tambah
-        </button>
+        {!isOwner && (
+          <button
+            onClick={() => setOpen(true)}
+            className="
+              flex items-center gap-2
+              px-4 py-2
+              bg-red-500
+              hover:bg-red-600
+              text-white
+              rounded-xl
+            "
+          >
+            <Plus className="w-4 h-4" />
+            Tambah
+          </button>
+        )}
       </div>
+
+      {isOwner && (
+        <div className="bg-blue-50/80 border border-blue-100 text-blue-800 px-5 py-3.5 rounded-2xl text-sm flex items-center gap-3 shadow-sm">
+          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">ℹ</span>
+          <p className="font-medium">
+            Anda masuk sebagai <strong>Owner</strong>. Halaman ini bersifat <strong>Lihat-Saja (Read-Only)</strong>. Tombol aksi tambah dan hapus pengeluaran dinonaktifkan.
+          </p>
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <table className="w-full">
@@ -107,7 +119,7 @@ export default function ExpensePage() {
               <th className="p-4 text-left">Nominal</th>
               <th className="p-4 text-left">Keterangan</th>
               <th className="p-4 text-left">Tanggal</th>
-              <th className="p-4 text-center">Aksi</th>
+              {!isOwner && <th className="p-4 text-center">Aksi</th>}
             </tr>
           </thead>
 
@@ -126,19 +138,21 @@ export default function ExpensePage() {
                   {new Date(expense.created_at).toLocaleDateString("id-ID")}
                 </td>
 
-                <td className="p-4 text-center">
-                  <button
-                    onClick={() => deleteExpense(expense.id)}
-                    className="
-                      p-2
-                      bg-red-100
-                      text-red-600
-                      rounded-lg
-                    "
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </td>
+                {!isOwner && (
+                  <td className="p-4 text-center">
+                    <button
+                      onClick={() => deleteExpense(expense.id)}
+                      className="
+                        p-2
+                        bg-red-100
+                        text-red-600
+                        rounded-lg
+                      "
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

@@ -356,7 +356,7 @@ export default function Login({ onLogin }: LoginProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={mode === "reset" && Boolean(resetEmail)}
-                placeholder="owner@nikkyfrozen.com"
+                placeholder="nama@email.com"
                 className="w-full h-14 pl-12 pr-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100"
               />
             </div>
@@ -386,7 +386,7 @@ export default function Login({ onLogin }: LoginProps) {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder={mode === "reset" ? "Minimal 6 karakter" : "123456"}
+                  placeholder={mode === "reset" ? "Minimal 6 karakter" : "••••••••"}
                   className="w-full h-14 pl-12 pr-12 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
 

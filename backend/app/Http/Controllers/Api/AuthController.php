@@ -52,13 +52,19 @@ class AuthController extends Controller
             'Login ke sistem'
         );
 
+        $userWithBranch = User::with('branch')->find($user->id);
+
         return response()->json([
             'success' => true,
             'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'role' => $user->role,
-                'branch_id' => $user->branch_id,
+                'id' => $userWithBranch->id,
+                'name' => $userWithBranch->name,
+                'role' => $userWithBranch->role,
+                'branch_id' => $userWithBranch->branch_id,
+                'branch' => $userWithBranch->branch ? [
+                    'id' => $userWithBranch->branch->id,
+                    'name' => $userWithBranch->branch->name,
+                ] : null,
             ],
         ]);
     }

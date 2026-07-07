@@ -1,32 +1,18 @@
 import { storageUrl } from "../../lib/api";
-interface StockItem {
-  id: number;
-  stock: number;
-
-  product: {
-    id: number;
-    name: string;
-    sku: string;
-    category: string;
-    price: number;
-    image: string;
-  };
-
-  branch: {
-    id: number;
-    name: string;
-  };
-}
+import type { Stock } from "../../types/stock";
 
 interface Props {
-  stocks: StockItem[];
-  onEdit: (item: StockItem) => void;
+  stocks: Stock[];
+  onEdit: (item: Stock) => void;
 }
 
 export default function StockTable({
   stocks,
   onEdit,
 }: Props) {
+  const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+  const isOwner = user.role === "owner";
+
   const maxStock = Math.max(
     ...stocks.map((s) => s.stock),
     1,
@@ -143,21 +129,23 @@ export default function StockTable({
                 </div>
               </div>
 
-              <button
-                onClick={() => onEdit(item)}
-                className="
-                  px-3
-                  py-2
-                  rounded-xl
-                  bg-blue-600
-                  text-white
-                  text-xs
-                  font-semibold
-                  hover:bg-blue-700
-                "
-              >
-                Edit
-              </button>
+              {!isOwner && (
+                <button
+                  onClick={() => onEdit(item)}
+                  className="
+                    px-3
+                    py-2
+                    rounded-xl
+                    bg-blue-600
+                    text-white
+                    text-xs
+                    font-semibold
+                    hover:bg-blue-700
+                  "
+                >
+                  Edit
+                </button>
+              )}
             </div>
           );
         })}

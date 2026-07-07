@@ -9,22 +9,30 @@ interface Props {
 }
 
 export default function ProductTable({ products, onEdit, onDelete }: Props) {
+  const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+  const isOwner = user.role === "owner";
+
+  const headers = [
+    "Produk",
+    "SKU",
+    "Kategori",
+    "Harga",
+    "Distribusi Stok",
+    "Kadaluarsa",
+    "Status",
+  ];
+
+  if (!isOwner) {
+    headers.push("");
+  }
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50/70">
-              {[
-                "Produk",
-                "SKU",
-                "Kategori",
-                "Harga",
-                "Distribusi Stok",
-                "Kadaluarsa",
-                "Status",
-                "",
-              ].map((h) => (
+              {headers.map((h) => (
                 <th
                   key={h}
                   className="text-left px-4 py-3 text-xs font-bold text-gray-500"

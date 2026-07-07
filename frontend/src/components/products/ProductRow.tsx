@@ -17,6 +17,9 @@ interface Props {
 }
 
 export default function ProductRow({ product, onEdit, onDelete }: Props) {
+  const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+  const isOwner = user.role === "owner";
+
   const days = daysFromNow(product.expiry);
 
   const stock =
@@ -140,35 +143,37 @@ export default function ProductRow({ product, onEdit, onDelete }: Props) {
       </td>
 
       {/* AKSI */}
-      <td className="px-4 py-3.5">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => onEdit(product)}
-            className="
-              p-1.5
-              text-gray-400
-              hover:text-blue-600
-              hover:bg-blue-50
-              rounded-lg
-            "
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-          </button>
+      {!isOwner && (
+        <td className="px-4 py-3.5">
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onEdit(product)}
+              className="
+                p-1.5
+                text-gray-400
+                hover:text-blue-600
+                hover:bg-blue-50
+                rounded-lg
+              "
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+            </button>
 
-          <button
-            onClick={() => onDelete(product)}
-            className="
-              p-1.5
-              text-gray-400
-              hover:text-red-600
-              hover:bg-red-50
-              rounded-lg
-            "
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </td>
+            <button
+              onClick={() => onDelete(product)}
+              className="
+                p-1.5
+                text-gray-400
+                hover:text-red-600
+                hover:bg-red-50
+                rounded-lg
+              "
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </td>
+      )}
     </tr>
   );
 }

@@ -1,6 +1,7 @@
 // src/types/navigation.ts
 
 export type Page =
+  | "login"
   | "dashboard"
   | "pos"
   | "transactions"

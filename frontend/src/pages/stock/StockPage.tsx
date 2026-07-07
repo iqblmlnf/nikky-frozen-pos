@@ -10,6 +10,7 @@ import StockStats from "../../components/stock/StockStats";
 export default function StockPage() {
   // Ambil data user dari sessionStorage di luar function loadStocks agar bisa dipakai di UI
   const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+  const isOwner = user.role === "owner";
 
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [search, setSearch] = useState("");
@@ -100,6 +101,15 @@ export default function StockPage() {
       {user.role !== "owner" && user.branch?.name && (
         <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-xl text-sm font-semibold inline-block">
           Cabang: {user.branch.name}
+        </div>
+      )}
+
+      {isOwner && (
+        <div className="bg-blue-50/80 border border-blue-100 text-blue-800 px-5 py-3.5 rounded-2xl text-sm flex items-center gap-3 shadow-sm">
+          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">ℹ</span>
+          <p className="font-medium">
+            Anda masuk sebagai <strong>Owner</strong>. Halaman ini bersifat <strong>Lihat-Saja (Read-Only)</strong>. Tombol aksi edit stok dinonaktifkan.
+          </p>
         </div>
       )}
 

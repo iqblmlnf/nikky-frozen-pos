@@ -3,6 +3,9 @@ import { api } from "../../lib/api";
 import Swal from "sweetalert2";
 
 export default function TransferStockPage() {
+  const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+  const isOwner = user.role === "owner";
+
   const [products, setProducts] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
 
@@ -75,94 +78,105 @@ export default function TransferStockPage() {
         </p>
       </div>
 
+      {isOwner && (
+        <div className="bg-blue-50/80 border border-blue-100 text-blue-800 px-5 py-3.5 rounded-2xl text-sm flex items-center gap-3 shadow-sm">
+          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">ℹ</span>
+          <p className="font-medium">
+            Anda masuk sebagai <strong>Owner</strong>. Halaman ini bersifat <strong>Lihat-Saja (Read-Only)</strong>. Form pembuatan transfer stok dinonaktifkan.
+          </p>
+        </div>
+      )}
+
       {/* CONTENT */}
       <div className="grid lg:grid-cols-3 gap-4">
         {/* FORM */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-5">Form Transfer Stok</h3>
+        {!isOwner && (
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+              <h3 className="text-lg font-semibold mb-5">Form Transfer Stok</h3>
 
-            <div className="space-y-4">
-              <select
-                value={productId}
-                onChange={(e) => setProductId(e.target.value)}
-                className="w-full h-12 px-4 border border-gray-200 rounded-xl"
-              >
-                <option value="">Pilih Produk</option>
-
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <select
-                  value={fromBranch}
-                  onChange={(e) => setFromBranch(e.target.value)}
+                  value={productId}
+                  onChange={(e) => setProductId(e.target.value)}
                   className="w-full h-12 px-4 border border-gray-200 rounded-xl"
                 >
-                  <option value="">Cabang Asal</option>
+                  <option value="">Pilih Produk</option>
 
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
+                  {products.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
                     </option>
                   ))}
                 </select>
 
-                <select
-                  value={toBranch}
-                  onChange={(e) => setToBranch(e.target.value)}
-                  className="w-full h-12 px-4 border border-gray-200 rounded-xl"
-                >
-                  <option value="">Cabang Tujuan</option>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <select
+                    value={fromBranch}
+                    onChange={(e) => setFromBranch(e.target.value)}
+                    className="w-full h-12 px-4 border border-gray-200 rounded-xl"
+                  >
+                    <option value="">Cabang Asal</option>
 
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
+                    {branches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={toBranch}
+                    onChange={(e) => setToBranch(e.target.value)}
+                    className="w-full h-12 px-4 border border-gray-200 rounded-xl"
+                  >
+                    <option value="">Cabang Tujuan</option>
+
+                    {branches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <input
+                  type="number"
+                  placeholder="Jumlah transfer"
+                  value={qty}
+                  onChange={(e) => setQty(e.target.value)}
+                  className="
+                    w-full
+                    h-12
+                    px-4
+                    border
+                    border-gray-200
+                    rounded-xl
+                  "
+                />
+
+                <button
+                  onClick={handleTransfer}
+                  className="
+                    h-12
+                    px-6
+                    rounded-xl
+                    bg-blue-600
+                    text-white
+                    font-semibold
+                    hover:bg-blue-700
+                    transition
+                  "
+                >
+                  Transfer Stok
+                </button>
               </div>
-
-              <input
-                type="number"
-                placeholder="Jumlah transfer"
-                value={qty}
-                onChange={(e) => setQty(e.target.value)}
-                className="
-                  w-full
-                  h-12
-                  px-4
-                  border
-                  border-gray-200
-                  rounded-xl
-                "
-              />
-
-              <button
-                onClick={handleTransfer}
-                className="
-                  h-12
-                  px-6
-                  rounded-xl
-                  bg-blue-600
-                  text-white
-                  font-semibold
-                  hover:bg-blue-700
-                  transition
-                "
-              >
-                Transfer Stok
-              </button>
             </div>
           </div>
-        </div>
+        )}
 
         {/* SIDEBAR */}
-        <div className="space-y-4">
+        <div className={isOwner ? "lg:col-span-3 grid md:grid-cols-2 gap-4" : "space-y-4"}>
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
             <p className="text-sm text-gray-500">Total Produk</p>
 

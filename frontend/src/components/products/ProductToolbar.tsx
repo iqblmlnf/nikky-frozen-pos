@@ -20,6 +20,9 @@ export default function ProductToolbar({
   categories,
   onAdd,
 }: Props) {
+  const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+  const isOwner = user.role === "owner";
+
   return (
     <div className="flex flex-col sm:flex-row gap-3">
 
@@ -44,13 +47,15 @@ export default function ProductToolbar({
         ))}
       </select>
 
-      <button
-        onClick={onAdd}
-        className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold"
-      >
-        <Plus className="w-4 h-4" />
-        Tambah Produk
-      </button>
+      {!isOwner && (
+        <button
+          onClick={onAdd}
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold"
+        >
+          <Plus className="w-4 h-4" />
+          Tambah Produk
+        </button>
+      )}
 
     </div>
   )
