@@ -49,12 +49,20 @@ class DashboardController extends Controller
             ];
         }
 
-        $categoryRows = Product::query()
+        $productsQuery = Product::query();
+        if ($branchId) {
+            $productsQuery->whereHas('stocks', function ($q) use ($branchId) {
+                $q->where('branch_id', $branchId);
+            });
+        }
+
+        $totalProducts = (clone $productsQuery)->count();
+
+        $categoryRows = (clone $productsQuery)
             ->select('category', DB::raw('COUNT(*) as total'))
             ->groupBy('category')
             ->get();
 
-        $totalProducts = Product::count();
         $colors = ['#1565C0', '#06B6D4', '#3B82F6', '#0EA5E9', '#7DD3FC', '#F59E0B', '#10B981'];
 
         $categoryData = $categoryRows
@@ -67,19 +75,26 @@ class DashboardController extends Controller
                 ];
             });
 
-        $expiringProducts = Product::query()
+        $expiringQuery = Product::query()
             ->select('id', 'name', 'image', 'expiry')
             ->whereNotNull('expiry')
             ->whereDate('expiry', '<=', now()->addDays(7))
             ->orderBy('expiry')
-            ->limit(10)
-            ->get()
-            ->map(function ($product) {
+            ->limit(10);
+
+        if ($branchId) {
+            $expiringQuery->whereHas('stocks', function ($q) use ($branchId) {
+                $q->where('branch_id', $branchId)->where('stock', '>', 0);
+            });
+        }
+
+        $expiringProducts = $expiringQuery->get()
+            ->map(function ($product) use ($branchId) {
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'image' => $product->image,
-                    'branch' => 'Semua cabang',
+                    'branch' => $branchId ? 'Cabang ini' : 'Semua cabang',
                     'expiry' => $product->expiry,
                 ];
             });

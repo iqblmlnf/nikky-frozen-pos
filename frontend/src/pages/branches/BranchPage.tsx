@@ -46,8 +46,13 @@ export default function BranchPage() {
       });
 
       loadBranches();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: error.response?.data?.message || "Gagal menghapus cabang.",
+      });
     }
   };
 

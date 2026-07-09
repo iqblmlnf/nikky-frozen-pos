@@ -10,7 +10,7 @@ export default function TransferStockPage() {
   const [branches, setBranches] = useState<any[]>([]);
 
   const [productId, setProductId] = useState("");
-  const [fromBranch, setFromBranch] = useState("");
+  const [fromBranch, setFromBranch] = useState(isOwner ? "" : String(user.branch_id || ""));
   const [toBranch, setToBranch] = useState("");
   const [qty, setQty] = useState("");
   const [history, setHistory] = useState<any[]>([]);
@@ -21,10 +21,11 @@ export default function TransferStockPage() {
 
   const loadData = async () => {
     try {
+      const params = isOwner ? {} : { branch_id: user.branch_id };
       const [productsRes, branchesRes, historyRes] = await Promise.all([
         api.get("/products"),
         api.get("/branches"),
-        api.get("/stock-transfer-history"),
+        api.get("/stock-transfer-history", { params }),
       ]);
 
       setProducts(productsRes.data);
@@ -54,7 +55,7 @@ export default function TransferStockPage() {
       });
 
       setProductId("");
-      setFromBranch("");
+      if (isOwner) setFromBranch("");
       setToBranch("");
       setQty("");
       loadData();
@@ -114,7 +115,8 @@ export default function TransferStockPage() {
                   <select
                     value={fromBranch}
                     onChange={(e) => setFromBranch(e.target.value)}
-                    className="w-full h-12 px-4 border border-gray-200 rounded-xl"
+                    disabled={!isOwner}
+                    className="w-full h-12 px-4 border border-gray-200 rounded-xl disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
                   >
                     <option value="">Cabang Asal</option>
 

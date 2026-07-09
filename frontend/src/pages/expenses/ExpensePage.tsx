@@ -17,7 +17,8 @@ export default function ExpensePage() {
 
   const loadExpenses = async () => {
     try {
-      const res = await api.get("/expenses");
+      const params = isOwner ? {} : { branch_id: user.branch_id };
+      const res = await api.get("/expenses", { params });
 
       setExpenses(res.data);
     } catch (error) {
@@ -36,6 +37,7 @@ export default function ExpensePage() {
         amount: form.amount,
         description: form.description,
         expense_date: new Date().toISOString().split("T")[0],
+        branch_id: user.branch_id || null,
       });
 
       await Swal.fire({

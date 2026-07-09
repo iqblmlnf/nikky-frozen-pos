@@ -12,6 +12,8 @@ use App\Http\Controllers\TransferStockController;
 use App\Http\Controllers\Api\MidtransController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ShiftController;
+use App\Http\Controllers\CategoryController;
 
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -32,5 +34,11 @@ Route::get('/stock-transfer', [TransferStockController::class, 'index']);
 Route::get('/stock-transfer-history', [TransferStockController::class, 'history']);
 Route::post('/midtrans/create-transaction', [MidtransController::class, 'createTransaction']);
 Route::apiResource('expenses', ExpenseController::class);
+Route::apiResource('categories', CategoryController::class);
 
-
+// Shift & Tutup Buku
+Route::get('/shifts/active', [ShiftController::class, 'active']);
+Route::post('/shifts/open', [ShiftController::class, 'open']);
+Route::post('/shifts/close', [ShiftController::class, 'close']);
+Route::get('/daily-settlements/today', [ShiftController::class, 'todaySettlement']);
+Route::post('/daily-settlements/close', [ShiftController::class, 'closeDay']);

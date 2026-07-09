@@ -19,7 +19,6 @@ class AuthController extends Controller
         $validated = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
-            'role' => 'required|in:owner,kasir,admin_gudang,admin_keuangan',
         ]);
 
         $credentials = [
@@ -35,15 +34,6 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
-
-        if ($user->role !== $validated['role']) {
-            Auth::logout();
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Role login tidak sesuai dengan akun ini',
-            ], 403);
-        }
 
         AuditHelper::log(
             $user->id,

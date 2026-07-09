@@ -12,14 +12,66 @@ interface Props {
   onSuccess: () => void;
 }
 
-const categories = [
-  "Frozen Food",
-  "Minuman",
-  "Snack",
-  "Seafood",
-  "Daging",
-  "Sayuran Beku",
-];
+import CategoryManageModal from "./CategoryManageModal";
+
+const convertToWebP = (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("Could not get canvas context"));
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const webpFile = new File(
+                [blob],
+                file.name.replace(/\.[^/.]+$/, "") + ".webp",
+                { type: "image/webp" }
+              );
+              resolve(webpFile);
+            } else {
+              reject(new Error("Canvas to blob conversion failed"));
+            }
+          },
+          "image/webp",
+          0.8
+        );
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
 
 export default function ProductModal({
   open,
@@ -30,6 +82,8 @@ export default function ProductModal({
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
   const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState<any[]>([]);
+  const [showManageCategory, setShowManageCategory] = useState(false);
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
   const [branchId, setBranchId] = useState("");
@@ -43,13 +97,36 @@ export default function ProductModal({
   const visibleBranches = isAdminGudang
     ? branches.filter((branch) => String(branch.id) === assignedBranchId)
     : branches;
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+  const loadCategories = async () => {
+    try {
+      const res = await api.get("/categories");
+      setCategories(res.data);
+    } catch (error) {
+      console.error("Gagal memuat kategori:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      loadCategories();
+    }
+  }, [open]);
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
     if (!file) return;
 
-    setImage(file);
-    setPreview(URL.createObjectURL(file));
+    try {
+      const webpFile = await convertToWebP(file);
+      setImage(webpFile);
+      setPreview(URL.createObjectURL(webpFile));
+    } catch (error) {
+      console.error("Gagal mengonversi gambar ke WebP:", error);
+      setImage(file);
+      setPreview(URL.createObjectURL(file));
+    }
   };
 
   useEffect(() => {
@@ -348,9 +425,19 @@ export default function ProductModal({
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">
-              Kategori
-            </label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-xs font-bold uppercase text-gray-500">
+                Kategori
+              </label>
+
+              <button
+                type="button"
+                onClick={() => setShowManageCategory(true)}
+                className="text-xs text-blue-600 hover:text-blue-700 font-bold hover:underline"
+              >
+                ⚙️ Kelola
+              </button>
+            </div>
 
             <select
               value={category}
@@ -360,8 +447,8 @@ export default function ProductModal({
               <option value="">Pilih Kategori</option>
 
               {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
+                <option key={cat.id} value={cat.name}>
+                  {cat.name}
                 </option>
               ))}
             </select>
@@ -450,6 +537,12 @@ export default function ProductModal({
           </button>
         </div>
       </div>
+
+      <CategoryManageModal
+        open={showManageCategory}
+        onClose={() => setShowManageCategory(false)}
+        onSuccess={loadCategories}
+      />
     </div>
   );
 }

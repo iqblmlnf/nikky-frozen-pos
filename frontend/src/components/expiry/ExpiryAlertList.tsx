@@ -1,7 +1,6 @@
 import { storageUrl } from "../../lib/api";
 import {
   CheckCircle,
-  Download,
 } from "lucide-react";
 
 import { daysFromNow } from "../../utils/date";
@@ -26,11 +25,6 @@ export default function ExpiryAlertList({
             kadaluarsa
           </p>
         </div>
-
-        <button className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700">
-          <Download className="w-3.5 h-3.5" />
-          Export
-        </button>
       </div>
 
       <div className="divide-y divide-gray-50">

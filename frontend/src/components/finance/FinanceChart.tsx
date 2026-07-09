@@ -8,7 +8,6 @@ import {
   YAxis,
 } from "recharts";
 
-import { Download } from "lucide-react";
 import { fmt } from "../../utils/currency";
 
 interface FinanceChartItem {
@@ -61,11 +60,6 @@ export default function FinanceChart({ data, period, setPeriod }: Props) {
 
             <option value={90}>90 Hari</option>
           </select>
-
-          <button className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-gray-600 rounded-xl text-xs font-semibold hover:bg-gray-50 transition-colors">
-            <Download className="w-3.5 h-3.5" />
-            PDF
-          </button>
         </div>
       </div>
 

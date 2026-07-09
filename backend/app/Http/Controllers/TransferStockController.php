@@ -86,15 +86,23 @@ class TransferStockController extends Controller
             ->get();
     }
 
-    public function history()
+    public function history(Request $request)
     {
-        return TransferStock::with([
+        $branchId = $request->query('branch_id');
+        $query = TransferStock::with([
             'product',
             'fromBranch',
             'toBranch',
             'user'
-        ])
-            ->latest()
-            ->get();
+        ]);
+
+        if ($branchId) {
+            $query->where(function ($q) use ($branchId) {
+                $q->where('from_branch_id', $branchId)
+                    ->orWhere('to_branch_id', $branchId);
+            });
+        }
+
+        return $query->latest()->get();
     }
 }

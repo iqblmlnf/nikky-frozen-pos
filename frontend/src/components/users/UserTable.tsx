@@ -59,9 +59,15 @@ export default function UserTable({ users, onEdit, onDelete }: Props) {
 
                 {/* CABANG */}
                 <td className="px-4 py-3">
-                  <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">
-                    {user.branch?.name ?? "-"}
-                  </span>
+                  {user.role === "owner" ? (
+                    <span className="px-2.5 py-1.5 rounded-xl bg-purple-50 border border-purple-100 text-purple-700 text-xs font-bold shadow-sm">
+                      👑 Pusat / Semua Cabang
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-1.5 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 text-xs font-semibold">
+                      {user.branch?.name ?? "-"}
+                    </span>
+                  )}
                 </td>
 
                 {/* AKSI */}

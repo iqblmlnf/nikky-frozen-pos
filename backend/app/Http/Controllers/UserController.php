@@ -36,18 +36,31 @@ class UserController extends Controller
             'email' => 'required|unique:users,email,' . $user->id,
         ]);
 
-        $user->update([
+        $data = [
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
             'branch_id' => $request->branch_id,
-        ]);
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
 
         return response()->json($user);
     }
 
     public function destroy(User $user)
     {
+        $hasSales = \App\Models\Sale::where('user_id', $user->id)->exists();
+        if ($hasSales) {
+            return response()->json([
+                'message' => 'Tidak dapat menghapus user ini karena telah memiliki riwayat transaksi penjualan. Silakan biarkan user tetap ada.'
+            ], 422);
+        }
+
         $user->delete();
 
         return response()->json([

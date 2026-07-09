@@ -85,7 +85,7 @@ export default function UserModal({
         return;
       }
 
-      if (!branchId) {
+      if (role !== "owner" && !branchId) {
         Swal.fire({
           icon: "warning",
           title: "Cabang wajib dipilih",
@@ -95,12 +95,18 @@ export default function UserModal({
       }
 
       if (editing) {
-        await api.put(`/users/${editing.id}`, {
+        const payload: any = {
           name,
           email,
           role,
-          branch_id: branchId,
-        });
+          branch_id: role === "owner" ? null : branchId || null,
+        };
+
+        if (password) {
+          payload.password = password;
+        }
+
+        await api.put(`/users/${editing.id}`, payload);
 
         await Swal.fire({
           icon: "success",
@@ -113,7 +119,7 @@ export default function UserModal({
           email,
           password,
           role,
-          branch_id: branchId,
+          branch_id: role === "owner" ? null : branchId || null,
         });
 
         await Swal.fire({
@@ -190,19 +196,21 @@ export default function UserModal({
             <option value="admin_keuangan">Admin Keuangan</option>
           </select>
 
-          <select
-            value={branchId}
-            onChange={(e) => setBranchId(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200"
-          >
-            <option value="">Pilih Cabang</option>
+          {role !== "owner" && (
+            <select
+              value={branchId}
+              onChange={(e) => setBranchId(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200"
+            >
+              <option value="">Pilih Cabang</option>
 
-            {branches.map((branch) => (
-              <option key={branch.id} value={branch.id}>
-                {branch.name}
-              </option>
-            ))}
-          </select>
+              {branches.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+          )}
 
           <button
             onClick={handleSave}

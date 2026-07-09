@@ -7,9 +7,16 @@ use Illuminate\Http\Request;
 
 class ExpenseController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Expense::latest()->get();
+        $branchId = $request->query('branch_id');
+        $query = Expense::query();
+
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+
+        return $query->latest()->get();
     }
 
     public function store(Request $request)
@@ -19,6 +26,7 @@ class ExpenseController extends Controller
             'amount' => 'required|numeric',
             'description' => 'nullable|string',
             'expense_date' => 'required|date',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
 
         $expense = Expense::create($validated);

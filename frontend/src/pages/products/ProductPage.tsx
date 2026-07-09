@@ -14,6 +14,8 @@ export function ProductPage() {
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Semua");
+  const [sortBy, setSortBy] = useState("default");
+  const [stockFilter, setStockFilter] = useState("all");
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -65,13 +67,13 @@ export function ProductPage() {
       });
 
       loadProducts();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
 
       Swal.fire({
         icon: "error",
-        title: "Gagal",
-        text: "Produk gagal dihapus",
+        title: "Gagal Menghapus",
+        text: error?.response?.data?.message || "Produk gagal dihapus",
       });
     }
   };
@@ -81,12 +83,44 @@ export function ProductPage() {
     ...Array.from(new Set(products.map((p) => p.category))),
   ];
 
-  const filtered = products.filter(
-    (p) =>
-      (category === "Semua" || p.category === category) &&
-      (p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.sku.toLowerCase().includes(search.toLowerCase())),
-  );
+  const filtered = products.filter((p) => {
+    const matchesCategory = category === "Semua" || p.category === category;
+    const matchesSearch =
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.sku.toLowerCase().includes(search.toLowerCase());
+
+    const totalStock =
+      p.stocks?.reduce((sum: number, s: any) => sum + Number(s.stock), 0) || 0;
+
+    let matchesStock = true;
+    if (stockFilter === "low") {
+      matchesStock = totalStock <= 10 && totalStock > 0;
+    } else if (stockFilter === "empty") {
+      matchesStock = totalStock === 0;
+    }
+
+    return matchesCategory && matchesSearch && matchesStock;
+  });
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === "price_desc") {
+      return Number(b.price) - Number(a.price);
+    }
+    if (sortBy === "price_asc") {
+      return Number(a.price) - Number(b.price);
+    }
+    if (sortBy === "stock_desc") {
+      const stockA = a.stocks?.reduce((sum: number, s: any) => sum + Number(s.stock), 0) || 0;
+      const stockB = b.stocks?.reduce((sum: number, s: any) => sum + Number(s.stock), 0) || 0;
+      return stockB - stockA;
+    }
+    if (sortBy === "stock_asc") {
+      const stockA = a.stocks?.reduce((sum: number, s: any) => sum + Number(s.stock), 0) || 0;
+      const stockB = b.stocks?.reduce((sum: number, s: any) => sum + Number(s.stock), 0) || 0;
+      return stockA - stockB;
+    }
+    return a.name.localeCompare(b.name);
+  });
 
   return (
     <div className="p-4 lg:p-6 space-y-5">
@@ -168,6 +202,10 @@ export function ProductPage() {
         category={category}
         setCategory={setCategory}
         categories={categories}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        stockFilter={stockFilter}
+        setStockFilter={setStockFilter}
         onAdd={() => {
           setEditing(null);
           setShowModal(true);
@@ -176,7 +214,7 @@ export function ProductPage() {
 
       {/* TABLE */}
       <ProductTable
-        products={filtered}
+        products={sorted}
         onEdit={(product) => {
           setEditing(product);
           setShowModal(true);

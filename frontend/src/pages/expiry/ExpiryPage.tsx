@@ -25,10 +25,28 @@ export default function ExpiryPage() {
             };
 
       const res = await api.get("/products", {
-        params, // Kirim parameter ke backend Laravel bray
+        params,
       });
 
-      setProducts(res.data);
+      const mappedProducts = res.data.map((p: any) => {
+        let stockVal = 0;
+        if (user.role !== "owner") {
+          const branchStock = p.stocks?.find(
+            (s: any) => String(s.branch_id) === String(user.branch_id)
+          );
+          stockVal = branchStock ? Number(branchStock.stock) : 0;
+        } else {
+          stockVal = p.stocks?.reduce((sum: number, s: any) => sum + Number(s.stock), 0) ?? 0;
+        }
+        return {
+          ...p,
+          stock: stockVal,
+        };
+      });
+
+      const activeProducts = mappedProducts.filter((p: any) => p.stock > 0);
+
+      setProducts(activeProducts);
     } catch (error) {
       console.error(error);
     }

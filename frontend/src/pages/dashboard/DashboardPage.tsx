@@ -20,6 +20,7 @@ import {
 export function DashboardPage() {
   const [transfers, setTransfers] = useState<any[]>([]);
   const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+  const isOwner = user.role === "owner";
   const [products, setProducts] = useState<any[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
   const [period, setPeriod] = useState(7);
@@ -96,11 +97,11 @@ export function DashboardPage() {
         <StatCard
           title="Total Stok"
           value={String(totalStocks)}
-          sub="Seluruh stok semua cabang"
+          sub={isOwner ? "Seluruh stok semua cabang" : "Stok cabang saat ini"}
           icon={<Package className="w-5 h-5" />}
           color="blue"
           trend={{
-            label: "Semua Cabang",
+            label: isOwner ? "Semua Cabang" : "Cabang Ini",
             up: true,
           }}
         />

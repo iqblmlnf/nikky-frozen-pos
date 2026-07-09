@@ -13,19 +13,50 @@ class SaleController extends Controller
 {
     public function store(Request $request)
     {
+        // 1. Cek jam operasional (Tutup pukul 22:00)
+        if (now()->hour >= 22) {
+            return response()->json([
+                'message' => 'Transaksi ditolak. Batas waktu operasional penjualan adalah pukul 22.00.'
+            ], 422);
+        }
+
+        // 2. Cek apakah hari ini sudah Tutup Buku Harian untuk cabang tersebut
+        $settled = \App\Models\DailySettlement::where('branch_id', $request->branch_id)
+            ->where('date', now()->toDateString())
+            ->exists();
+
+        if ($settled) {
+            return response()->json([
+                'message' => 'Transaksi ditolak. Cabang ini sudah melakukan Tutup Buku Harian untuk hari ini.'
+            ], 422);
+        }
+
+        // 3. Cek apakah kasir ini sedang memiliki shift aktif
+        $activeShift = \App\Models\CashierShift::where('user_id', $request->user_id)
+            ->where('status', 'open')
+            ->first();
+
+        if (!$activeShift) {
+            return response()->json([
+                'message' => 'Transaksi ditolak. Anda harus membuka shift kasir terlebih dahulu untuk melakukan penjualan.'
+            ], 422);
+        }
 
         DB::beginTransaction();
 
         try {
 
             $sale = Sale::create([
-                'invoice_number' => 'INV-' . now()->format('YmdHis'),
+                'invoice_number' => $request->invoice_number ?? ('INV-' . now()->format('YmdHis')),
                 'user_id' => $request->user_id,
                 'branch_id' => $request->branch_id,
                 'total' => $request->total,
                 'payment_method' => $request->payment_method ?? 'Cash',
                 'payment_status' => 'paid',
             ]);
+
+            // Update total penjualan di shift kasir yang aktif
+            $activeShift->increment('total_sales', $request->total);
 
             foreach ($request->items as $item) {
 
@@ -102,17 +133,7 @@ class SaleController extends Controller
             'user:id,name',
             'branch:id,name',
         ])
-            ->withSum('items as items_qty', 'qty')
-            ->select([
-                'id',
-                'invoice_number',
-                'user_id',
-                'branch_id',
-                'total',
-                'payment_method',
-                'payment_status',
-                'created_at',
-            ]);
+            ->withSum('items as items_qty', 'qty');
 
         if ($request->branch_id) {
             $query->where('branch_id', $request->branch_id);

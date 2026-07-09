@@ -25,15 +25,23 @@ export default function UsersPage() {
 
     if (!result.isConfirmed) return;
 
-    await api.delete(`/users/${user.id}`);
+    try {
+      await api.delete(`/users/${user.id}`);
 
-    Swal.fire({
-      icon: "success",
-      title: "Berhasil",
-      text: "User berhasil dihapus",
-    });
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil",
+        text: "User berhasil dihapus",
+      });
 
-    loadUsers();
+      loadUsers();
+    } catch (error: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Menghapus",
+        text: error?.response?.data?.message || "Terjadi kesalahan server saat menghapus user.",
+      });
+    }
   };
   const loadUsers = async () => {
     try {

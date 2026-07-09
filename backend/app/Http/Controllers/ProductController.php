@@ -153,15 +153,18 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        $hasSales = DB::table('sale_items')->where('product_id', $product->id)->exists();
+        if ($hasSales) {
+            return response()->json([
+                'message' => 'Tidak dapat menghapus produk ini karena telah memiliki riwayat transaksi penjualan. Silakan biarkan produk tetap ada.'
+            ], 422);
+        }
+
         DB::table('transfer_stocks')
             ->where('product_id', $product->id)
             ->delete();
 
         DB::table('product_stocks')
-            ->where('product_id', $product->id)
-            ->delete();
-
-        DB::table('sale_items')
             ->where('product_id', $product->id)
             ->delete();
 

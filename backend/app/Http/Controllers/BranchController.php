@@ -33,11 +33,47 @@ class BranchController extends Controller
 
     public function destroy(Branch $branch)
     {
-        $branch->delete();
+        DB::beginTransaction();
+        try {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
-        return response()->json([
-            'message' => 'Cabang berhasil dihapus'
-        ]);
+            // Hapus data stok produk di cabang ini
+            DB::table('product_stocks')->where('branch_id', $branch->id)->delete();
+            
+            // Hapus data pengguna yang berada di cabang ini
+            DB::table('users')->where('branch_id', $branch->id)->delete();
+
+            // Hapus data transaksi penjualan di cabang ini
+            DB::table('sales')->where('branch_id', $branch->id)->delete();
+
+            // Hapus data pengeluaran di cabang ini
+            DB::table('expenses')->where('branch_id', $branch->id)->delete();
+
+            // Hapus data shift di cabang ini
+            DB::table('cashier_shifts')->where('branch_id', $branch->id)->delete();
+
+            // Hapus data tutup buku di cabang ini
+            DB::table('daily_settlements')->where('branch_id', $branch->id)->delete();
+
+            // Hapus data transfer stok (dari/ke cabang ini)
+            DB::table('transfer_stocks')->where('from_branch_id', $branch->id)->orWhere('to_branch_id', $branch->id)->delete();
+
+            // Hapus cabang itu sendiri
+            $branch->delete();
+
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Cabang berhasil dihapus'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            return response()->json([
+                'message' => 'Gagal menghapus cabang: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function performance(Request $request)

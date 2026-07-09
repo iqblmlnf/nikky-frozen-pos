@@ -4,16 +4,12 @@ import Swal from "sweetalert2";
 import {
   ArrowLeft,
   CheckCircle2,
-  DollarSign,
   Eye,
   EyeOff,
   KeyRound,
   LockKeyhole,
   Mail,
-  Package,
-  ShoppingCart,
   Snowflake,
-  Star,
 } from "lucide-react";
 
 interface LoginProps {
@@ -28,62 +24,20 @@ export default function Login({ onLogin }: LoginProps) {
   const resetEmail = query.get("email") || "";
 
   const [mode, setMode] = useState<LoginMode>(resetToken ? "reset" : "login");
-  const [selectedRole, setSelectedRole] = useState("Admin Gudang");
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState(resetEmail);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const roles = [
-    {
-      name: "Owner",
-      value: "owner",
-      desc: "Akses penuh",
-      icon: Star,
-    },
-    {
-      name: "Kasir",
-      value: "kasir",
-      desc: "POS & Transaksi",
-      icon: ShoppingCart,
-    },
-    {
-      name: "Admin Gudang",
-      value: "admin_gudang",
-      desc: "Stok & Produk",
-      icon: Package,
-    },
-    {
-      name: "Admin Keuangan",
-      value: "admin_keuangan",
-      desc: "Laporan & Jurnal",
-      icon: DollarSign,
-    },
-  ];
-
   const handleLogin = async () => {
-    const selectedRoleData = roles.find((role) => role.name === selectedRole);
-    const selectedRoleValue = selectedRoleData?.value || "admin_gudang";
-
     try {
       setLoading(true);
 
       const response = await api.post("/login", {
         email,
         password,
-        role: selectedRoleValue,
       });
-
-      if (response.data.user.role !== selectedRoleValue) {
-        await Swal.fire({
-          icon: "error",
-          title: "Role Tidak Sesuai",
-          text: `Akun ini terdaftar sebagai ${response.data.user.role}, bukan ${selectedRole}.`,
-        });
-
-        return;
-      }
 
       sessionStorage.setItem("user", JSON.stringify(response.data.user));
 
@@ -209,7 +163,7 @@ export default function Login({ onLogin }: LoginProps) {
       ? "Masukkan email akun untuk membuat link reset password"
       : mode === "reset"
         ? "Buat password baru untuk akun Anda"
-        : "Pilih peran dan masuk ke sistem POS";
+        : "Masuk ke sistem POS Nikky Frozen";
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
@@ -297,52 +251,7 @@ export default function Login({ onLogin }: LoginProps) {
 
           <p className="text-slate-500 mt-2">{description}</p>
 
-          {mode === "login" && (
-            <div className="mt-8">
-              <p className="font-semibold text-sm text-slate-500 mb-4">
-                LOGIN SEBAGAI
-              </p>
 
-              <div className="grid grid-cols-2 gap-4">
-                {roles.map((role) => {
-                  const Icon = role.icon;
-                  const active = selectedRole === role.name;
-
-                  return (
-                    <button
-                      key={role.name}
-                      type="button"
-                      onClick={() => setSelectedRole(role.name)}
-                      className={`rounded-2xl border p-4 text-left transition-all ${
-                        active
-                          ? "border-blue-600 bg-blue-50"
-                          : "border-slate-200 hover:border-blue-300"
-                      }`}
-                    >
-                      <div className="flex gap-3">
-                        <Icon
-                          size={18}
-                          className={active ? "text-blue-600" : "text-slate-400"}
-                        />
-
-                        <div>
-                          <h3
-                            className={`font-semibold ${
-                              active ? "text-blue-600" : "text-slate-700"
-                            }`}
-                          >
-                            {role.name}
-                          </h3>
-
-                          <p className="text-sm text-slate-500">{role.desc}</p>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
 
           <div className="mt-8">
             <label className="block text-sm font-semibold text-slate-600 mb-2">
